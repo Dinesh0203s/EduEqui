@@ -50,10 +50,19 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Skip to main content link for screen readers */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:shadow-lg"
+        aria-label="Skip to main content"
+      >
+        Skip to main content
+      </a>
+      
       <Header />
       <AccessibilityToolbar />
       
-      <main className="flex-1 py-12 px-4">
+      <main className="flex-1 py-12 px-4" id="main-content" role="main" aria-label="Dashboard main content">
         <div className="container mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -61,22 +70,31 @@ const Dashboard = () => {
             transition={{ duration: 0.5 }}
           >
             {/* Welcome Section */}
-            <div className="mb-12 text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 text-primary">
+            <section 
+              className="mb-12 text-center"
+              aria-labelledby="welcome-heading"
+              role="region"
+            >
+              <h1 id="welcome-heading" className="text-4xl md:text-5xl font-bold mb-4 text-primary">
                 வணக்கம் {userName}!
               </h1>
               <p className="text-2xl text-muted-foreground">
                 Welcome back! Ready to continue learning?
               </p>
-            </div>
+            </section>
 
             {/* Navigation Buttons */}
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
+            <nav 
+              className="flex flex-wrap justify-center gap-4 mb-12"
+              aria-label="Quick actions"
+              role="navigation"
+            >
               <Button
                 variant="outline"
                 size="lg"
-                className="text-lg rounded-2xl"
-                aria-label="Go to settings"
+                className="text-lg rounded-2xl min-w-[140px] min-h-[48px]"
+                onClick={() => navigate('/settings')}
+                aria-label="Go to settings page. Keyboard shortcut: Alt plus S"
               >
                 <Settings className="w-5 h-5 mr-2" aria-hidden="true" />
                 Settings
@@ -85,8 +103,8 @@ const Dashboard = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="text-lg rounded-2xl"
-                aria-label="Get help"
+                className="text-lg rounded-2xl min-w-[140px] min-h-[48px]"
+                aria-label="Get help and support"
               >
                 <HelpCircle className="w-5 h-5 mr-2" aria-hidden="true" />
                 Help
@@ -95,29 +113,40 @@ const Dashboard = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="text-lg rounded-2xl"
+                className="text-lg rounded-2xl min-w-[140px] min-h-[48px]"
                 onClick={() => navigate("/")}
-                aria-label="Log out"
+                aria-label="Log out and return to home"
               >
                 <LogOut className="w-5 h-5 mr-2" aria-hidden="true" />
                 Log Out
               </Button>
-            </div>
+            </nav>
 
             {/* Courses Section */}
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                <BookOpen className="w-8 h-8 text-primary" aria-hidden="true" />
-                Your Courses
-              </h2>
-              <p className="text-xl text-muted-foreground mb-8">
-                உங்கள் பாடநெறிகள்
-              </p>
+            <section 
+              className="mb-8"
+              aria-labelledby="courses-heading"
+              role="region"
+            >
+              <div className="mb-8">
+                <h2 id="courses-heading" className="text-3xl font-bold mb-2 flex items-center gap-3">
+                  <BookOpen className="w-8 h-8 text-primary" aria-hidden="true" />
+                  Your Courses
+                </h2>
+                <p className="text-xl text-muted-foreground">
+                  உங்கள் பாடநெறிகள்
+                </p>
+              </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div 
+                className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+                role="list"
+                aria-label="Course list"
+              >
                 {courses.map((course, index) => (
                   <motion.div
                     key={course.id}
+                    role="listitem"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1, duration: 0.5 }}
@@ -133,7 +162,7 @@ const Dashboard = () => {
                   </motion.div>
                 ))}
               </div>
-            </div>
+            </section>
           </motion.div>
         </div>
       </main>
