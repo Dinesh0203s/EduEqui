@@ -23,7 +23,7 @@ const Footer = () => {
             <div className="flex flex-col gap-2">
               <a 
                 href="mailto:support@eduequi.com" 
-                className="flex items-center gap-2 text-lg hover:text-primary transition-colors justify-center md:justify-start"
+                className="flex items-center gap-2 text-lg hover:text-primary transition-colors justify-center md:justify-start focus:outline-none focus:ring-4 focus:ring-primary/50 rounded-lg p-2 -m-2"
                 aria-label="Email us at support@eduequi.com"
               >
                 <Mail className="w-5 h-5" aria-hidden="true" />
@@ -33,8 +33,8 @@ const Footer = () => {
                 href="https://github.com/eduequi" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-lg hover:text-primary transition-colors justify-center md:justify-start"
-                aria-label="Visit our GitHub repository"
+                className="flex items-center gap-2 text-lg hover:text-primary transition-colors justify-center md:justify-start focus:outline-none focus:ring-4 focus:ring-primary/50 rounded-lg p-2 -m-2"
+                aria-label="Visit our GitHub repository. Opens in a new tab"
               >
                 <Github className="w-5 h-5" aria-hidden="true" />
                 GitHub
