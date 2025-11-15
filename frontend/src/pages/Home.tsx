@@ -74,15 +74,69 @@ const Home = () => {
                 அனைவருக்கும் கல்வி – Education Without Barriers
               </p>
               
-              <Button
-                onClick={() => navigate("/category")}
-                size="lg"
-                className="text-2xl py-8 px-12 min-w-[200px] min-h-[64px] rounded-3xl bg-card text-primary hover:bg-card/90 shadow-glow animate-pulse-glow focus:ring-4 focus:ring-card/50"
-                aria-label="Start your learning journey. Navigate to category selection. Voice command: start learning"
-              >
-                <Sparkles className="w-8 h-8 mr-3" aria-hidden="true" />
-                Start Learning
-              </Button>
+              {isAuthenticated ? (
+                <div className="flex flex-col items-center gap-4">
+                  <p className="text-xl mb-4">
+                    Welcome back, <span className="font-bold">{user?.name}</span>!
+                  </p>
+                  <div className="flex gap-4 flex-wrap justify-center">
+                    <Button
+                      onClick={() => navigate("/dashboard")}
+                      size="lg"
+                      className="text-2xl py-8 px-12 min-w-[200px] min-h-[64px] rounded-3xl bg-card text-primary hover:bg-card/90 shadow-glow animate-pulse-glow focus:ring-4 focus:ring-card/50"
+                      aria-label="Continue learning. Navigate to dashboard"
+                    >
+                      <Sparkles className="w-8 h-8 mr-3" aria-hidden="true" />
+                      Continue Learning
+                    </Button>
+                    <Button
+                      onClick={() => navigate("/profile")}
+                      size="lg"
+                      variant="outline"
+                      className="text-xl py-6 px-10 min-h-[64px] rounded-3xl bg-white/10 text-white border-white/30 hover:bg-white/20"
+                      aria-label="View your profile"
+                    >
+                      <User className="w-6 h-6 mr-2" aria-hidden="true" />
+                      My Profile
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        logout();
+                        navigate("/");
+                      }}
+                      size="lg"
+                      variant="outline"
+                      className="text-xl py-6 px-10 min-h-[64px] rounded-3xl bg-white/10 text-white border-white/30 hover:bg-white/20"
+                      aria-label="Logout"
+                    >
+                      <LogOut className="w-6 h-6 mr-2" aria-hidden="true" />
+                      Logout
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-4 flex-wrap justify-center">
+                  <Button
+                    onClick={() => navigate("/signup")}
+                    size="lg"
+                    className="text-2xl py-8 px-12 min-w-[200px] min-h-[64px] rounded-3xl bg-card text-primary hover:bg-card/90 shadow-glow animate-pulse-glow focus:ring-4 focus:ring-card/50"
+                    aria-label="Sign up and start learning"
+                  >
+                    <UserPlus className="w-8 h-8 mr-3" aria-hidden="true" />
+                    Get Started
+                  </Button>
+                  <Button
+                    onClick={() => navigate("/login")}
+                    size="lg"
+                    variant="outline"
+                    className="text-xl py-6 px-10 min-h-[64px] rounded-3xl bg-white/10 text-white border-white/30 hover:bg-white/20"
+                    aria-label="Login to your account"
+                  >
+                    <LogIn className="w-6 h-6 mr-2" aria-hidden="true" />
+                    Login
+                  </Button>
+                </div>
+              )}
             </motion.div>
           </div>
         </section>
