@@ -53,10 +53,19 @@ const ResultPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Skip to main content link for screen readers */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:shadow-lg"
+        aria-label="Skip to main content"
+      >
+        Skip to main content
+      </a>
+      
       <Header />
       <AccessibilityToolbar />
       
-      <main className="flex-1 py-12 px-4">
+      <main className="flex-1 py-12 px-4" id="main-content" role="main" aria-label="Quiz results main content">
         <div className="container mx-auto max-w-4xl">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -64,81 +73,105 @@ const ResultPage = () => {
             transition={{ duration: 0.5 }}
           >
             {/* Trophy Animation */}
-            <motion.div
-              initial={{ y: -50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
+            <section 
               className="text-center mb-8"
+              aria-label="Celebration"
             >
-              <Trophy className="w-32 h-32 text-accent mx-auto animate-pulse-glow" aria-hidden="true" />
-            </motion.div>
+              <motion.div
+                initial={{ y: -50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+              >
+                <Trophy className="w-32 h-32 text-accent mx-auto animate-pulse-glow" aria-hidden="true" />
+              </motion.div>
+            </section>
 
             {/* Score Card */}
-            <Card className="p-12 mb-8 gradient-card border-4 border-primary/30 rounded-3xl shadow-glow text-center">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
-              >
-                <h1 className="text-5xl font-bold mb-6 text-primary">
-                  Quiz Complete!
-                </h1>
-                <p className="text-4xl font-bold mb-8">
-                  வினாடி வினா முடிந்தது!
-                </p>
-
-                <div className="my-8">
-                  <div className="text-7xl font-bold text-accent mb-4">
-                    {score}/{total}
-                  </div>
-                  <div className="flex items-center justify-center gap-2 mb-6">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-10 h-10 ${
-                          i < Math.round((score / total) * 5)
-                            ? "text-accent fill-accent"
-                            : "text-muted"
-                        }`}
-                        aria-hidden="true"
-                      />
-                    ))}
-                  </div>
-                  <p className="text-3xl font-semibold text-primary">
-                    {percentage}% Score
+            <section 
+              aria-labelledby="results-heading"
+              role="region"
+            >
+              <Card className="p-12 mb-8 gradient-card border-4 border-primary/30 rounded-3xl shadow-glow text-center">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+                >
+                  <h1 id="results-heading" className="text-5xl font-bold mb-6 text-primary">
+                    Quiz Complete!
+                  </h1>
+                  <p className="text-4xl font-bold mb-8" lang="ta">
+                    வினாடி வினா முடிந்தது!
                   </p>
-                </div>
-              </motion.div>
-            </Card>
+
+                  <div 
+                    className="my-8"
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                  >
+                    <div 
+                      className="text-7xl font-bold text-accent mb-4"
+                      aria-label={`Your score: ${score} out of ${total}. That's ${percentage} percent`}
+                    >
+                      {score}/{total}
+                    </div>
+                    <div 
+                      className="flex items-center justify-center gap-2 mb-6"
+                      role="img"
+                      aria-label={`${Math.round((score / total) * 5)} out of 5 stars`}
+                    >
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-10 h-10 ${
+                            i < Math.round((score / total) * 5)
+                              ? "text-accent fill-accent"
+                              : "text-muted"
+                          }`}
+                          aria-hidden="true"
+                        />
+                      ))}
+                    </div>
+                    <p className="text-3xl font-semibold text-primary">
+                      {percentage}% Score
+                    </p>
+                  </div>
+                </motion.div>
+              </Card>
+            </section>
 
             {/* Motivational Message */}
-            <motion.div
+            <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.5 }}
+              aria-labelledby="motivation-heading"
             >
               <Card className="p-8 mb-8 bg-primary/10 border-2 border-primary/30 rounded-3xl text-center">
-                <p className="text-3xl font-bold text-primary mb-3">
+                <h2 id="motivation-heading" className="sr-only">Motivational message</h2>
+                <p className="text-3xl font-bold text-primary mb-3" lang="ta">
                   {message.tamil}
                 </p>
                 <p className="text-2xl font-semibold">
                   {message.english}
                 </p>
               </Card>
-            </motion.div>
+            </motion.section>
 
             {/* Action Buttons */}
-            <motion.div
+            <motion.nav
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.5 }}
               className="flex flex-col sm:flex-row gap-6 justify-center"
+              aria-label="Next actions"
             >
               <Button
                 onClick={() => navigate("/course", { state: { courseId } })}
                 size="lg"
-                className="text-2xl py-8 px-12 rounded-3xl shadow-elegant"
-                aria-label="Continue learning"
+                className="text-2xl py-8 px-12 rounded-3xl shadow-elegant min-h-[64px]"
+                aria-label="Continue learning this course"
               >
                 Continue Learning
                 <ArrowRight className="w-6 h-6 ml-3" aria-hidden="true" />
@@ -148,13 +181,13 @@ const ResultPage = () => {
                 onClick={() => navigate("/dashboard")}
                 variant="outline"
                 size="lg"
-                className="text-2xl py-8 px-12 rounded-3xl border-2 border-primary"
-                aria-label="Go to dashboard"
+                className="text-2xl py-8 px-12 rounded-3xl border-2 border-primary min-h-[64px]"
+                aria-label="Go to dashboard. Voice command: go to dashboard"
               >
                 <Home className="w-6 h-6 mr-3" aria-hidden="true" />
                 Dashboard
               </Button>
-            </motion.div>
+            </motion.nav>
           </motion.div>
         </div>
       </main>
