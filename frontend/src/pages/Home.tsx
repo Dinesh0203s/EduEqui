@@ -58,7 +58,11 @@ const Home = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <h1 className="text-5xl md:text-7xl font-bold mb-6">
+              <h1 
+                id="hero-title" 
+                className="text-5xl md:text-7xl font-bold mb-6"
+                lang="ta"
+              >
                 வணக்கம்! Welcome!
               </h1>
               <p className="text-2xl md:text-3xl mb-8 opacity-95">
