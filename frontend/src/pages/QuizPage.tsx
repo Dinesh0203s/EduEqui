@@ -89,10 +89,19 @@ const QuizPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Skip to main content link for screen readers */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:shadow-lg"
+        aria-label="Skip to main content"
+      >
+        Skip to main content
+      </a>
+      
       <Header />
       <AccessibilityToolbar />
       
-      <main className="flex-1 py-12 px-4">
+      <main className="flex-1 py-12 px-4" id="main-content" role="main" aria-label="Quiz main content">
         <div className="container mx-auto max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -100,14 +109,19 @@ const QuizPage = () => {
             transition={{ duration: 0.5 }}
           >
             {/* Progress */}
-            <div className="mb-8 text-center">
-              <p className="text-2xl font-semibold text-primary mb-2">
+            <section 
+              className="mb-8 text-center"
+              aria-labelledby="quiz-progress"
+              role="status"
+              aria-live="polite"
+            >
+              <p id="quiz-progress" className="text-2xl font-semibold text-primary mb-2">
                 Question {currentQuestion + 1} of {quizQuestions.length}
               </p>
-              <p className="text-xl text-muted-foreground">
+              <p className="text-xl text-muted-foreground" lang="ta">
                 கேள்வி {currentQuestion + 1} / {quizQuestions.length}
               </p>
-            </div>
+            </section>
 
             {/* Question Card */}
             <AnimatePresence mode="wait">
@@ -118,10 +132,14 @@ const QuizPage = () => {
                 exit={{ opacity: 0, x: -50 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card className="p-8 mb-8 gradient-card border-2 border-primary/20 rounded-3xl shadow-elegant">
+                <Card 
+                  className="p-8 mb-8 gradient-card border-2 border-primary/20 rounded-3xl shadow-elegant"
+                  role="region"
+                  aria-labelledby="current-question"
+                >
                   <div className="flex justify-between items-start mb-6">
                     <div className="flex-1">
-                      <h2 className="text-2xl font-bold mb-3 text-primary">
+                      <h2 id="current-question" className="text-2xl font-bold mb-3 text-primary" lang="ta">
                         {question.questionTamil}
                       </h2>
                       <h3 className="text-2xl font-bold">
@@ -135,7 +153,12 @@ const QuizPage = () => {
                   </div>
 
                   {/* Options */}
-                  <div className="space-y-4">
+                  <div 
+                    className="space-y-4"
+                    role="radiogroup"
+                    aria-labelledby="current-question"
+                    aria-required="true"
+                  >
                     {question.options.map((option) => {
                       const isSelected = selectedAnswer === option.id;
                       const isCorrect = option.id === question.correct;
@@ -149,7 +172,7 @@ const QuizPage = () => {
                           whileTap={!showFeedback ? { scale: 0.98 } : {}}
                         >
                           <Card
-                            className={`p-6 cursor-pointer transition-all rounded-2xl border-2 ${
+                            className={`p-6 cursor-pointer transition-all rounded-2xl border-2 min-h-[60px] ${
                               showCorrect
                                 ? "border-green-500 bg-green-50 dark:bg-green-950"
                                 : showWrong
@@ -159,10 +182,12 @@ const QuizPage = () => {
                                 : "border-primary/20 hover:border-primary/50"
                             }`}
                             onClick={() => !showFeedback && handleAnswerSelect(option.id)}
-                            role="button"
+                            role="radio"
                             tabIndex={0}
-                            onKeyDown={(e) => e.key === 'Enter' && !showFeedback && handleAnswerSelect(option.id)}
+                            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && !showFeedback && handleAnswerSelect(option.id)}
                             aria-label={`Option ${option.id}: ${option.text}`}
+                            aria-checked={isSelected}
+                            aria-disabled={showFeedback}
                           >
                             <div className="flex items-center justify-between">
                               <div>
@@ -195,28 +220,34 @@ const QuizPage = () => {
                   exit={{ opacity: 0, y: -20 }}
                   className="text-center"
                 >
-                  <Card className="p-6 mb-6 inline-block gradient-card rounded-3xl border-2 border-primary/20">
-                    <p className="text-2xl font-bold mb-2">
-                      {selectedAnswer === question.correct ? (
-                        <span className="text-green-600">✓ Correct! / சரியானது!</span>
-                      ) : (
-                        <span className="text-red-600">✗ Incorrect / தவறு</span>
-                      )}
-                    </p>
-                    <p className="text-xl text-muted-foreground">
-                      {selectedAnswer === question.correct 
-                        ? "Great job! / நன்றாக செய்தீர்கள்!"
-                        : "Keep trying! / தொடர்ந்து முயற்சிக்கவும்!"
-                      }
-                    </p>
-                  </Card>
+                  <div 
+                    role="status"
+                    aria-live="assertive"
+                    aria-atomic="true"
+                  >
+                    <Card className="p-6 mb-6 inline-block gradient-card rounded-3xl border-2 border-primary/20">
+                      <p className="text-2xl font-bold mb-2">
+                        {selectedAnswer === question.correct ? (
+                          <span className="text-green-600">✓ Correct! / சரியானது!</span>
+                        ) : (
+                          <span className="text-red-600">✗ Incorrect / தவறு</span>
+                        )}
+                      </p>
+                      <p className="text-xl text-muted-foreground">
+                        {selectedAnswer === question.correct 
+                          ? "Great job! / நன்றாக செய்தீர்கள்!"
+                          : "Keep trying! / தொடர்ந்து முயற்சிக்கவும்!"
+                        }
+                      </p>
+                    </Card>
+                  </div>
 
                   <div>
                     <Button
                       onClick={handleNext}
                       size="lg"
-                      className="text-2xl py-8 px-12 rounded-3xl shadow-elegant"
-                      aria-label={isLastQuestion ? "Finish quiz" : "Next question"}
+                      className="text-2xl py-8 px-12 rounded-3xl shadow-elegant min-h-[64px]"
+                      aria-label={isLastQuestion ? "Finish quiz and view results" : "Go to next question"}
                     >
                       {isLastQuestion ? "Finish Quiz / முடி" : "Next Question / அடுத்தது"}
                       <ArrowRight className="w-6 h-6 ml-3" aria-hidden="true" />
