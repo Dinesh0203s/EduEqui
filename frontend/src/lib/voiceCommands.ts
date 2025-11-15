@@ -13,7 +13,9 @@ export const createVoiceCommands = (
   currentFontSize: number,
   isHighContrast: boolean,
   stopTTS: () => void,
-  speakHelp: () => void
+  speakHelp: () => void,
+  pauseTTS?: () => void,
+  resumeTTS?: () => void
 ): VoiceCommand[] => [
   // Navigation commands
   {
