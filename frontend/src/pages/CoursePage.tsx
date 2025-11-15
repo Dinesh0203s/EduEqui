@@ -191,38 +191,45 @@ const CoursePage = () => {
             {selectedLesson && (
               <>
                 {/* Lesson Title */}
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold mb-2">
+                <section className="text-center mb-8" aria-labelledby="lesson-title">
+                  <h2 id="lesson-title" className="text-3xl font-bold mb-2" lang="ta">
                     {lessonContent.titleTamil || lessonContent.title}
                   </h2>
                   <h3 className="text-2xl text-muted-foreground">
                     {lessonContent.title}
                   </h3>
-                </div>
+                </section>
 
                 {/* Audio Player Section */}
-                <Card className="p-8 mb-8 gradient-card border-2 border-primary/20 rounded-3xl shadow-elegant">
-                  <div className="flex flex-col items-center gap-6">
-                    <h3 className="text-2xl font-bold">Audio Lesson / ஒலி பாடம்</h3>
-                    
-                    <Button
-                      onClick={handlePlayPause}
-                      size="lg"
-                      className="w-32 h-32 rounded-full text-2xl shadow-glow"
-                      aria-label={isPlaying ? "Pause audio lesson" : "Play audio lesson"}
-                    >
-                      {isPlaying ? (
-                        <Pause className="w-12 h-12" aria-hidden="true" />
-                      ) : (
-                        <Play className="w-12 h-12 ml-2" aria-hidden="true" />
-                      )}
-                    </Button>
-                    
-                    <p className="text-xl text-center text-muted-foreground">
-                      {isPlaying ? "Playing... / இயங்குகிறது..." : "Click to listen / கேட்க கிளிக் செய்யவும்"}
-                    </p>
-                  </div>
-                </Card>
+                <section aria-labelledby="audio-lesson-heading">
+                  <Card className="p-8 mb-8 gradient-card border-2 border-primary/20 rounded-3xl shadow-elegant">
+                    <div className="flex flex-col items-center gap-6">
+                      <h3 id="audio-lesson-heading" className="text-2xl font-bold">Audio Lesson / ஒலி பாடம்</h3>
+                      
+                      <Button
+                        onClick={handlePlayPause}
+                        size="lg"
+                        className="w-32 h-32 rounded-full text-2xl shadow-glow"
+                        aria-label={isPlaying ? "Pause audio lesson" : "Play audio lesson"}
+                        aria-pressed={isPlaying}
+                      >
+                        {isPlaying ? (
+                          <Pause className="w-12 h-12" aria-hidden="true" />
+                        ) : (
+                          <Play className="w-12 h-12 ml-2" aria-hidden="true" />
+                        )}
+                      </Button>
+                      
+                      <p 
+                        className="text-xl text-center text-muted-foreground"
+                        role="status"
+                        aria-live="polite"
+                      >
+                        {isPlaying ? "Playing... / இயங்குகிறது..." : "Click to listen / கேட்க கிளிக் செய்யவும்"}
+                      </p>
+                    </div>
+                  </Card>
+                </section>
 
                 {/* Text Content Section */}
                 <Card className="p-8 mb-8 gradient-card border-2 border-primary/20 rounded-3xl">
