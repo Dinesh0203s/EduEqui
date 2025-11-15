@@ -66,6 +66,17 @@ const Dashboard = () => {
                 variant="outline"
                 size="lg"
                 className="text-lg rounded-2xl min-w-[140px] min-h-[48px]"
+                onClick={() => navigate('/profile')}
+                aria-label="Go to your profile page"
+              >
+                <User className="w-5 h-5 mr-2" aria-hidden="true" />
+                Profile
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="lg"
+                className="text-lg rounded-2xl min-w-[140px] min-h-[48px]"
                 onClick={() => navigate('/settings')}
                 aria-label="Go to settings page. Keyboard shortcut: Alt plus S"
               >
@@ -87,7 +98,10 @@ const Dashboard = () => {
                 variant="outline"
                 size="lg"
                 className="text-lg rounded-2xl min-w-[140px] min-h-[48px]"
-                onClick={() => navigate("/")}
+                onClick={() => {
+                  logout();
+                  navigate("/");
+                }}
                 aria-label="Log out and return to home"
               >
                 <LogOut className="w-5 h-5 mr-2" aria-hidden="true" />
