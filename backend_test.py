@@ -244,6 +244,196 @@ class BackendTester:
         except Exception as e:
             self.log_result("TTS Missing Text", False, f"Error: {str(e)}")
     
+    def test_courses_endpoint(self):
+        """Test GET /api/courses endpoint"""
+        print("\n=== Testing Courses Endpoint ===")
+        try:
+            response = requests.get(f"{API_BASE}/courses", timeout=15)
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    if len(data) >= 4:  # Should have Maths, Science, English, Tamil
+                        # Check for expected courses
+                        course_ids = [course.get('id') for course in data]
+                        expected_courses = ['course-maths', 'course-science', 'course-english', 'course-tamil']
+                        
+                        found_courses = [cid for cid in expected_courses if cid in course_ids]
+                        if len(found_courses) >= 4:
+                            self.log_result("GET Courses", True, f"Found {len(data)} courses including all expected ones")
+                            
+                            # Validate course structure
+                            sample_course = data[0]
+                            required_fields = ['id', 'name', 'name_tamil', 'description', 'description_tamil', 'icon', 'color', 'lesson_count']
+                            missing_fields = [field for field in required_fields if field not in sample_course]
+                            
+                            if not missing_fields:
+                                self.log_result("Course Structure", True, "All required fields present in course objects")
+                            else:
+                                self.log_result("Course Structure", False, f"Missing fields: {missing_fields}")
+                        else:
+                            self.log_result("GET Courses", False, f"Missing expected courses. Found: {found_courses}")
+                    else:
+                        self.log_result("GET Courses", False, f"Expected at least 4 courses, got {len(data)}")
+                else:
+                    self.log_result("GET Courses", False, f"Expected list, got: {type(data)}")
+            else:
+                self.log_result("GET Courses", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_result("GET Courses", False, f"Connection error: {str(e)}")
+    
+    def test_specific_course_endpoint(self):
+        """Test GET /api/courses/{course_id} endpoint"""
+        print("\n=== Testing Specific Course Endpoint ===")
+        
+        # Test with course-maths
+        try:
+            response = requests.get(f"{API_BASE}/courses/course-maths", timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'name', 'name_tamil', 'description', 'description_tamil', 'icon', 'color', 'lesson_count']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    if data.get('id') == 'course-maths' and data.get('name') == 'Mathematics':
+                        self.log_result("GET Course Maths", True, f"Retrieved course: {data.get('name')} ({data.get('name_tamil')})")
+                    else:
+                        self.log_result("GET Course Maths", False, f"Incorrect course data: {data}")
+                else:
+                    self.log_result("GET Course Maths", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_result("GET Course Maths", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_result("GET Course Maths", False, f"Connection error: {str(e)}")
+        
+        # Test with non-existent course
+        try:
+            response = requests.get(f"{API_BASE}/courses/non-existent-course", timeout=10)
+            if response.status_code == 404:
+                self.log_result("GET Non-existent Course", True, "Correctly returned 404 for non-existent course")
+            else:
+                self.log_result("GET Non-existent Course", False, f"Expected 404, got {response.status_code}")
+        except Exception as e:
+            self.log_result("GET Non-existent Course", False, f"Connection error: {str(e)}")
+    
+    def test_course_lessons_endpoint(self):
+        """Test GET /api/courses/{course_id}/lessons endpoint"""
+        print("\n=== Testing Course Lessons Endpoint ===")
+        try:
+            response = requests.get(f"{API_BASE}/courses/course-maths/lessons", timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    if len(data) >= 3:  # Should have 3 math lessons
+                        self.log_result("GET Maths Lessons", True, f"Retrieved {len(data)} lessons for Mathematics")
+                        
+                        # Validate lesson structure
+                        sample_lesson = data[0]
+                        required_fields = ['id', 'course_id', 'title', 'title_tamil', 'description', 'description_tamil', 
+                                         'video_url', 'transcriptions', 'content_text', 'content_text_tamil', 'order']
+                        missing_fields = [field for field in required_fields if field not in sample_lesson]
+                        
+                        if not missing_fields:
+                            # Check transcriptions structure
+                            transcriptions = sample_lesson.get('transcriptions', [])
+                            if isinstance(transcriptions, list) and len(transcriptions) >= 2:
+                                # Check for English and Tamil transcriptions
+                                languages = [t.get('language') for t in transcriptions]
+                                if 'en' in languages and 'ta' in languages:
+                                    self.log_result("Lesson Structure", True, "Lessons have proper structure with bilingual transcriptions")
+                                else:
+                                    self.log_result("Lesson Structure", False, f"Missing bilingual transcriptions. Found languages: {languages}")
+                            else:
+                                self.log_result("Lesson Structure", False, f"Invalid transcriptions structure: {transcriptions}")
+                        else:
+                            self.log_result("Lesson Structure", False, f"Missing fields in lesson: {missing_fields}")
+                    else:
+                        self.log_result("GET Maths Lessons", False, f"Expected at least 3 lessons, got {len(data)}")
+                else:
+                    self.log_result("GET Maths Lessons", False, f"Expected list, got: {type(data)}")
+            else:
+                self.log_result("GET Maths Lessons", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_result("GET Maths Lessons", False, f"Connection error: {str(e)}")
+    
+    def test_specific_lesson_endpoint(self):
+        """Test GET /api/lessons/{lesson_id} endpoint"""
+        print("\n=== Testing Specific Lesson Endpoint ===")
+        
+        # Test with lesson-maths-1
+        try:
+            response = requests.get(f"{API_BASE}/lessons/lesson-maths-1", timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ['id', 'course_id', 'title', 'title_tamil', 'description', 'description_tamil',
+                                 'video_url', 'transcriptions', 'content_text', 'content_text_tamil', 'order']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    # Validate specific lesson data
+                    if (data.get('id') == 'lesson-maths-1' and 
+                        data.get('course_id') == 'course-maths' and
+                        data.get('video_url') and
+                        data.get('content_text') and
+                        data.get('content_text_tamil')):
+                        
+                        # Check transcriptions
+                        transcriptions = data.get('transcriptions', [])
+                        if len(transcriptions) >= 2:
+                            languages = [t.get('language') for t in transcriptions]
+                            if 'en' in languages and 'ta' in languages:
+                                self.log_result("GET Lesson Maths-1", True, f"Retrieved lesson: {data.get('title')} with bilingual content")
+                            else:
+                                self.log_result("GET Lesson Maths-1", False, f"Missing bilingual transcriptions: {languages}")
+                        else:
+                            self.log_result("GET Lesson Maths-1", False, f"Insufficient transcriptions: {len(transcriptions)}")
+                    else:
+                        self.log_result("GET Lesson Maths-1", False, f"Invalid lesson data structure")
+                else:
+                    self.log_result("GET Lesson Maths-1", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_result("GET Lesson Maths-1", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_result("GET Lesson Maths-1", False, f"Connection error: {str(e)}")
+        
+        # Test with non-existent lesson
+        try:
+            response = requests.get(f"{API_BASE}/lessons/non-existent-lesson", timeout=10)
+            if response.status_code == 404:
+                self.log_result("GET Non-existent Lesson", True, "Correctly returned 404 for non-existent lesson")
+            else:
+                self.log_result("GET Non-existent Lesson", False, f"Expected 404, got {response.status_code}")
+        except Exception as e:
+            self.log_result("GET Non-existent Lesson", False, f"Connection error: {str(e)}")
+    
+    def test_data_seeding(self):
+        """Test that data auto-seeding works correctly"""
+        print("\n=== Testing Data Auto-Seeding ===")
+        try:
+            # First call should trigger seeding
+            response = requests.get(f"{API_BASE}/courses", timeout=15)
+            if response.status_code == 200:
+                data = response.json()
+                if len(data) >= 4:
+                    self.log_result("Data Auto-Seeding", True, f"Auto-seeding successful, found {len(data)} courses")
+                    
+                    # Verify specific course data
+                    maths_course = next((c for c in data if c.get('id') == 'course-maths'), None)
+                    if maths_course:
+                        if (maths_course.get('name') == 'Mathematics' and 
+                            maths_course.get('name_tamil') == 'கணிதம்' and
+                            maths_course.get('lesson_count') == 3):
+                            self.log_result("Seeded Data Validation", True, "Mathematics course data is correct")
+                        else:
+                            self.log_result("Seeded Data Validation", False, f"Incorrect maths course data: {maths_course}")
+                    else:
+                        self.log_result("Seeded Data Validation", False, "Mathematics course not found in seeded data")
+                else:
+                    self.log_result("Data Auto-Seeding", False, f"Insufficient courses after seeding: {len(data)}")
+            else:
+                self.log_result("Data Auto-Seeding", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_result("Data Auto-Seeding", False, f"Connection error: {str(e)}")
+    
     def run_all_tests(self):
         """Run all backend tests"""
         print(f"🚀 Starting Backend API Tests for EduEqui")
