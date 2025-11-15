@@ -1,42 +1,12 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BookOpen, Settings, HelpCircle, LogOut } from "lucide-react";
+import { BookOpen, Settings, HelpCircle, LogOut, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AccessibilityToolbar from "@/components/AccessibilityToolbar";
 import CourseCard from "@/components/CourseCard";
-
-const courses = [
-  {
-    id: "math",
-    title: "Mathematics",
-    titleTamil: "கணிதம்",
-    difficulty: "Beginner",
-    progress: 35,
-  },
-  {
-    id: "science",
-    title: "Science",
-    titleTamil: "அறிவியல்",
-    difficulty: "Intermediate",
-    progress: 62,
-  },
-  {
-    id: "language",
-    title: "Language Arts",
-    titleTamil: "மொழி கலைகள்",
-    difficulty: "Beginner",
-    progress: 48,
-  },
-  {
-    id: "history",
-    title: "History",
-    titleTamil: "வரலாறு",
-    difficulty: "Intermediate",
-    progress: 20,
-  },
-];
+import { useCourses } from "@/hooks/useAdminApi";
 
 const Dashboard = () => {
   const navigate = useNavigate();
