@@ -1,4 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL || '/api/tts';
+const API_BASE = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}`
+  : (process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001');
+const API_URL = `${API_BASE}/api/tts`;
 
 interface TTSOptions {
   text: string;
