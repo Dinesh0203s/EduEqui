@@ -51,16 +51,23 @@ const AppContent = () => {
       />
       
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
-        <Route path="/category" element={<CategorySelection />} />
-        <Route path="/language" element={<LanguageSelect />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/course" element={<CoursePageNew />} />
-        <Route path="/course/:courseId" element={<CoursePageNew />} />
-        <Route path="/quiz" element={<QuizPage />} />
-        <Route path="/result" element={<ResultPage />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        
+        {/* Protected Routes */}
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/category" element={<ProtectedRoute><CategorySelection /></ProtectedRoute>} />
+        <Route path="/language" element={<ProtectedRoute><LanguageSelect /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/course" element={<ProtectedRoute><CoursePageNew /></ProtectedRoute>} />
+        <Route path="/course/:courseId" element={<ProtectedRoute><CoursePageNew /></ProtectedRoute>} />
+        <Route path="/quiz" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
+        <Route path="/result" element={<ProtectedRoute><ResultPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
