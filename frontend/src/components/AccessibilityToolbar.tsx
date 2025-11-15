@@ -18,36 +18,41 @@ const AccessibilityToolbar = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 flex gap-2 bg-card border border-border rounded-2xl p-2 shadow-elegant z-50">
+    <div 
+      className="fixed bottom-6 right-6 flex gap-3 bg-card border-2 border-border rounded-2xl p-3 shadow-elegant z-50"
+      role="toolbar"
+      aria-label="Accessibility controls"
+      aria-orientation="horizontal"
+    >
       <Button
         onClick={decreaseFontSize}
         variant="outline"
         size="icon"
-        className="hover:bg-primary hover:text-primary-foreground"
-        aria-label="Decrease font size"
+        className="min-w-[48px] min-h-[48px] hover:bg-primary hover:text-primary-foreground focus:ring-4 focus:ring-primary/50"
+        aria-label={`Decrease font size. Current size: ${settings.fontSize}px. Voice command: decrease font`}
       >
-        <ZoomOut className="w-5 h-5" aria-hidden="true" />
+        <ZoomOut className="w-6 h-6" aria-hidden="true" />
       </Button>
       
       <Button
         onClick={increaseFontSize}
         variant="outline"
         size="icon"
-        className="hover:bg-primary hover:text-primary-foreground"
-        aria-label="Increase font size"
+        className="min-w-[48px] min-h-[48px] hover:bg-primary hover:text-primary-foreground focus:ring-4 focus:ring-primary/50"
+        aria-label={`Increase font size. Current size: ${settings.fontSize}px. Voice command: increase font`}
       >
-        <ZoomIn className="w-5 h-5" aria-hidden="true" />
+        <ZoomIn className="w-6 h-6" aria-hidden="true" />
       </Button>
       
       <Button
         onClick={toggleHighContrast}
         variant={settings.highContrast ? "default" : "outline"}
         size="icon"
-        className={settings.highContrast ? "" : "hover:bg-primary hover:text-primary-foreground"}
-        aria-label="Toggle high contrast mode"
+        className={`min-w-[48px] min-h-[48px] ${settings.highContrast ? "focus:ring-4 focus:ring-white/50" : "hover:bg-primary hover:text-primary-foreground focus:ring-4 focus:ring-primary/50"}`}
+        aria-label={`${settings.highContrast ? 'Disable' : 'Enable'} high contrast mode. Voice command: high contrast ${settings.highContrast ? 'off' : 'on'}`}
         aria-pressed={settings.highContrast}
       >
-        <Contrast className="w-5 h-5" aria-hidden="true" />
+        <Contrast className="w-6 h-6" aria-hidden="true" />
       </Button>
     </div>
   );
