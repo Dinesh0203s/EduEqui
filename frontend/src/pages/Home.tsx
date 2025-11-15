@@ -48,7 +48,10 @@ const Home = () => {
       
       <main className="flex-1" id="main-content" role="main" aria-label="Main content">
         {/* Hero Section */}
-        <section className="py-20 px-4 gradient-hero text-primary-foreground">
+        <section 
+          className="py-20 px-4 gradient-hero text-primary-foreground"
+          aria-labelledby="hero-title"
+        >
           <div className="container mx-auto max-w-5xl text-center">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
