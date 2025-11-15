@@ -159,6 +159,240 @@ class AuthResponse(BaseModel):
     token: str
     token_type: str = "bearer"
 
+# Authentication utility functions
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against its hash"""
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    """Hash a password"""
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict) -> str:
+    """Create JWT access token"""
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+    """Dependency to get current authenticated user"""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    
+    user_doc = await db.users.find_one({"id": user_id})
+    if user_doc is None:
+        raise credentials_exception
+    
+    return User(**user_doc)
+
+def user_to_response(user: User) -> UserResponse:
+    """Convert User model to UserResponse"""
+    return UserResponse(
+        id=user.id,
+        name=user.name,
+        email=user.email,
+        disability_types=user.disability_types,
+        age=user.age,
+        language_preference=user.language_preference,
+        grade_level=user.grade_level,
+        created_at=user.created_at
+    )
+
+# Authentication Endpoints
+@api_router.post("/auth/signup", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+async def signup(user_data: UserSignup):
+    """Register a new user with onboarding details"""
+    try:
+        # Check if user already exists
+        existing_user = await db.users.find_one({"email": user_data.email})
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+        
+        # Create user
+        user = User(
+            name=user_data.name,
+            email=user_data.email,
+            password_hash=get_password_hash(user_data.password),
+            disability_types=user_data.disability_types,
+            age=user_data.age,
+            language_preference=user_data.language_preference,
+            grade_level=user_data.grade_level
+        )
+        
+        # Insert into database
+        await db.users.insert_one(user.dict())
+        
+        # Create access token
+        access_token = create_access_token(data={"sub": user.id})
+        
+        logger.info(f"New user registered: {user.email}")
+        
+        return AuthResponse(
+            user=user_to_response(user),
+            token=access_token
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Signup failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Registration failed"
+        )
+
+@api_router.post("/auth/login", response_model=AuthResponse)
+async def login(credentials: UserLogin):
+    """Authenticate user and return JWT token"""
+    try:
+        # Find user by email
+        user_doc = await db.users.find_one({"email": credentials.email})
+        if not user_doc:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password"
+            )
+        
+        user = User(**user_doc)
+        
+        # Verify password
+        if not verify_password(credentials.password, user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password"
+            )
+        
+        # Create access token
+        access_token = create_access_token(data={"sub": user.id})
+        
+        logger.info(f"User logged in: {user.email}")
+        
+        return AuthResponse(
+            user=user_to_response(user),
+            token=access_token
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Login failed"
+        )
+
+@api_router.get("/auth/me", response_model=UserResponse)
+async def get_current_user_profile(current_user: User = Depends(get_current_user)):
+    """Get current authenticated user's profile"""
+    return user_to_response(current_user)
+
+@api_router.put("/auth/profile", response_model=UserResponse)
+async def update_profile(
+    user_update: UserUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    """Update user profile"""
+    try:
+        update_data = {}
+        
+        if user_update.name is not None:
+            update_data["name"] = user_update.name
+        if user_update.disability_types is not None:
+            update_data["disability_types"] = user_update.disability_types.dict()
+        if user_update.age is not None:
+            update_data["age"] = user_update.age
+        if user_update.language_preference is not None:
+            update_data["language_preference"] = user_update.language_preference
+        if user_update.grade_level is not None:
+            update_data["grade_level"] = user_update.grade_level
+        
+        if not update_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No fields to update"
+            )
+        
+        update_data["updated_at"] = datetime.utcnow()
+        
+        # Update user in database
+        await db.users.update_one(
+            {"id": current_user.id},
+            {"$set": update_data}
+        )
+        
+        # Fetch updated user
+        updated_user_doc = await db.users.find_one({"id": current_user.id})
+        updated_user = User(**updated_user_doc)
+        
+        logger.info(f"Profile updated: {current_user.email}")
+        
+        return user_to_response(updated_user)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Profile update failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Profile update failed"
+        )
+
+@api_router.put("/auth/password")
+async def change_password(
+    password_data: PasswordChange,
+    current_user: User = Depends(get_current_user)
+):
+    """Change user password"""
+    try:
+        # Verify current password
+        if not verify_password(password_data.current_password, current_user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Current password is incorrect"
+            )
+        
+        # Hash new password
+        new_password_hash = get_password_hash(password_data.new_password)
+        
+        # Update password in database
+        await db.users.update_one(
+            {"id": current_user.id},
+            {"$set": {
+                "password_hash": new_password_hash,
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        
+        logger.info(f"Password changed: {current_user.email}")
+        
+        return {"success": True, "message": "Password changed successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Password change failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Password change failed"
+        )
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
