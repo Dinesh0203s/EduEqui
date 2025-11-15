@@ -171,6 +171,22 @@ export const stopTTS = (): void => {
   isPlaying = false;
 };
 
+export const pauseTTS = (): void => {
+  // Pause current audio without clearing queue
+  if (currentAudio && !currentAudio.paused) {
+    currentAudio.pause();
+  }
+};
+
+export const resumeTTS = (): void => {
+  // Resume current audio if paused
+  if (currentAudio && currentAudio.paused) {
+    currentAudio.play().catch(error => {
+      console.error('Failed to resume audio:', error);
+    });
+  }
+};
+
 // Stop all TTS when page is unloaded
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeunload', stopTTS);
