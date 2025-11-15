@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "vite",
     "dev:backend": "python backend/app.py",
     "dev:all": "node start-dev.js",
     "build": "vite build",
