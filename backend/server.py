@@ -48,6 +48,44 @@ class TTSResponse(BaseModel):
     audio_base64: str
     format: str = "mp3"
 
+# Course Models
+class Course(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    name_tamil: str
+    description: str
+    description_tamil: str
+    icon: str
+    color: str
+    lesson_count: int = 0
+
+class Transcription(BaseModel):
+    language: str  # 'en' or 'ta'
+    text: str
+    timestamps: Optional[List[dict]] = None
+
+class Lesson(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    course_id: str
+    title: str
+    title_tamil: str
+    description: str
+    description_tamil: str
+    video_url: str
+    video_duration: Optional[int] = None  # in seconds
+    transcriptions: List[Transcription]
+    content_text: str  # Full text content for TTS
+    content_text_tamil: str
+    order: int = 0
+
+class LessonProgress(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    lesson_id: str
+    user_id: str = "guest"  # For future user tracking
+    completed: bool = False
+    progress_seconds: int = 0
+    last_accessed: datetime = Field(default_factory=datetime.utcnow)
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
