@@ -109,30 +109,37 @@ const Dashboard = () => {
                 </p>
               </div>
 
-              <div 
-                className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-                role="list"
-                aria-label="Course list"
-              >
-                {courses.map((course, index) => (
-                  <motion.div
-                    key={course.id}
-                    role="listitem"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1, duration: 0.5 }}
-                  >
-                    <CourseCard
-                      title={course.title}
-                      titleTamil={course.titleTamil}
-                      difficulty={course.difficulty}
-                      progress={course.progress}
-                      onClick={() => handleCourseClick(course.id)}
-                      colorIndex={index}
-                    />
-                  </motion.div>
-                ))}
-              </div>
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+                  <p className="text-muted-foreground">Loading courses...</p>
+                </div>
+              ) : (
+                <div 
+                  className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+                  role="list"
+                  aria-label="Course list"
+                >
+                  {courses.map((course: any, index: number) => (
+                    <motion.div
+                      key={course.id}
+                      role="listitem"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1, duration: 0.5 }}
+                    >
+                      <CourseCard
+                        title={course.name}
+                        titleTamil={course.name_tamil}
+                        difficulty="Beginner"
+                        progress={0}
+                        onClick={() => handleCourseClick(course.id)}
+                        colorIndex={index}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </section>
           </motion.div>
         </div>
