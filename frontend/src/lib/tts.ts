@@ -1,7 +1,5 @@
-const API_BASE = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL}`
-  : (process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001');
-const API_URL = `${API_BASE}/api/tts`;
+const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const API_URL = `${API_BASE}/tts`;
 
 interface TTSOptions {
   text: string;
@@ -31,17 +29,6 @@ const getDefaultSpeed = (): number => {
   return 1.0;
 };
 
-// Convert base64 to Blob
-const base64ToBlob = (base64: string, mimeType: string): Blob => {
-  const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-  const byteArray = new Uint8Array(byteNumbers);
-  return new Blob([byteArray], { type: mimeType });
-};
-
 const processQueue = async (): Promise<void> => {
   if (isPlaying || ttsQueue.length === 0) return;
   
@@ -65,7 +52,7 @@ const processQueue = async (): Promise<void> => {
       },
       body: JSON.stringify({
         text,
-        language: languageCode.split('-')[0], // Extract language code (en, ta)
+        lang: languageCode.split('-')[0], // Extract language code (en, ta)
         speed: speed ?? getDefaultSpeed()
       })
     });
@@ -74,9 +61,8 @@ const processQueue = async (): Promise<void> => {
       throw new Error('Failed to generate speech');
     }
 
-    // Get base64 audio from response
-    const data = await response.json();
-    const audioBlob = base64ToBlob(data.audio_base64, 'audio/mp3');
+    // Flask backend returns audio file directly, not JSON with base64
+    const audioBlob = await response.blob();
     const audioUrl = URL.createObjectURL(audioBlob);
     
     return new Promise((resolve) => {

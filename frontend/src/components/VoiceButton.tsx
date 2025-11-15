@@ -1,6 +1,8 @@
 import { Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { speakWithTTS } from "@/lib/tts";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface VoiceButtonProps {
   englishText: string;
@@ -9,21 +11,57 @@ interface VoiceButtonProps {
 }
 
 const VoiceButton = ({ englishText, tamilText, className = "" }: VoiceButtonProps) => {
+  const { settings } = useSettings();
+  const { user } = useAuth();
+  
+  // Determine language preference: settings > user preference > bilingual
+  const getLanguagePreference = (): 'tamil' | 'english' | 'bilingual' => {
+    if (settings.language !== 'bilingual') {
+      return settings.language;
+    }
+    if (user?.language_preference === 'ta') {
+      return 'tamil';
+    }
+    if (user?.language_preference === 'en') {
+      return 'english';
+    }
+    return 'bilingual';
+  };
+
   const handleSpeak = async () => {
     try {
-      // Speak English first
-      await speakWithTTS({
-        text: englishText,
-        languageCode: 'en-US'
-      });
+      const languagePref = getLanguagePreference();
       
-      // Then speak Tamil after a short delay
-      setTimeout(() => {
-        speakWithTTS({
+      if (languagePref === 'tamil' && tamilText) {
+        // Play only Tamil
+        await speakWithTTS({
           text: tamilText,
           languageCode: 'ta-IN'
         });
-      }, 1000); // Fixed delay between languages
+      } else if (languagePref === 'english' && englishText) {
+        // Play only English
+        await speakWithTTS({
+          text: englishText,
+          languageCode: 'en-US'
+        });
+      } else {
+        // Bilingual: Play both
+        if (englishText) {
+          await speakWithTTS({
+            text: englishText,
+            languageCode: 'en-US'
+          });
+        }
+        
+        if (tamilText) {
+          setTimeout(() => {
+            speakWithTTS({
+              text: tamilText,
+              languageCode: 'ta-IN'
+            });
+          }, 1000);
+        }
+      }
     } catch (error) {
       console.error('Error in VoiceButton:', error);
     }

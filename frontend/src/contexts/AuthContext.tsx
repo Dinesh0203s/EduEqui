@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '@/lib/firebase';
 
 interface DisabilityType {
   vision: boolean;
@@ -25,6 +27,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   signup: (userData: SignupData) => Promise<void>;
   logout: () => void;
   updateUser: (user: User) => void;
@@ -59,7 +62,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL || '';
+  const backendUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
   // Load token and user from localStorage on mount
   useEffect(() => {
@@ -129,6 +132,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      // Sign in with Firebase Google popup
+      const result = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = result.user;
+      
+      // Get Firebase ID token
+      const idToken = await firebaseUser.getIdToken();
+      
+      // Send to backend for verification and user creation/login
+      const response = await fetch(`${backendUrl}/api/auth/google`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          idToken,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Google login failed');
+      }
+
+      const data = await response.json();
+      setToken(data.token);
+      setUser(data.user);
+      
+      // Store in localStorage for persistence
+      localStorage.setItem('auth_token', data.token);
+      localStorage.setItem('auth_user', JSON.stringify(data.user));
+    } catch (error) {
+      console.error('Google login error:', error);
+      throw error;
+    }
+  };
+
   const signup = async (userData: SignupData) => {
     try {
       const response = await fetch(`${backendUrl}/api/auth/signup`, {
@@ -175,6 +219,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!token && !!user,
     isLoading,
     login,
+    loginWithGoogle,
     signup,
     logout,
     updateUser,

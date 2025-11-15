@@ -43,7 +43,7 @@ const Profile = () => {
   });
   const [passwordLoading, setPasswordLoading] = useState(false);
 
-  const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL || '';
+  const backendUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
   const handleSaveProfile = async () => {
     setError('');

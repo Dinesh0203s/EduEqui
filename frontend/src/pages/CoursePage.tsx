@@ -10,6 +10,9 @@ import Footer from "@/components/Footer";
 import AccessibilityToolbar from "@/components/AccessibilityToolbar";
 import VoiceButton from "@/components/VoiceButton";
 import { useCourse, useLessons, type Lesson } from "@/hooks/useAdminApi";
+import { useSettings } from "@/contexts/SettingsContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { speakWithTTS } from "@/lib/tts";
 
 const CoursePage = () => {
   const navigate = useNavigate();
@@ -17,6 +20,8 @@ const CoursePage = () => {
   const { courseId: paramCourseId } = useParams();
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+  const { settings } = useSettings();
+  const { user } = useAuth();
 
   // Get courseId from params, location state, or default
   const courseId = paramCourseId || location.state?.courseId || null;
@@ -35,16 +40,95 @@ const CoursePage = () => {
   // Get selected lesson data
   const selectedLesson = lessons.find((l: Lesson) => l.id === selectedLessonId) || lessons[0];
 
-  const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
+  // Determine language preference
+  const getLanguagePreference = (): 'tamil' | 'english' | 'bilingual' => {
+    if (settings.language !== 'bilingual') {
+      return settings.language;
+    }
+    if (user?.language_preference === 'ta') {
+      return 'tamil';
+    }
+    if (user?.language_preference === 'en') {
+      return 'english';
+    }
+    return 'bilingual';
+  };
+
+  // Auto-play lesson content when lesson changes (if single language selected)
+  useEffect(() => {
+    if (selectedLesson && settings.language !== 'bilingual') {
+      // Auto-play the lesson content in the selected language
+      const timer = setTimeout(async () => {
+        if (!isPlaying) {
+          const languagePref = getLanguagePreference();
+          
+          try {
+            if (languagePref === 'tamil' && selectedLesson.contentTamil) {
+              await speakWithTTS({
+                text: selectedLesson.contentTamil,
+                languageCode: 'ta-IN'
+              });
+            } else if (languagePref === 'english' && selectedLesson.content) {
+              await speakWithTTS({
+                text: selectedLesson.content,
+                languageCode: 'en-US'
+              });
+            }
+          } catch (error) {
+            console.error('Error auto-playing lesson:', error);
+          }
+        }
+      }, 500); // Small delay to ensure content is loaded
+      
+      return () => clearTimeout(timer);
+    }
+  }, [selectedLessonId, selectedLesson, settings.language]);
+
+  const handlePlayPause = async () => {
+    if (!selectedLesson) return;
     
-    if (!isPlaying && selectedLesson && 'speechSynthesis' in window) {
-      const text = `${selectedLesson.contentTamil || ''} ${selectedLesson.content || ''}`;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    } else {
-      window.speechSynthesis.cancel();
+    if (isPlaying) {
+      // Stop playing
+      window.speechSynthesis?.cancel();
+      setIsPlaying(false);
+      return;
+    }
+    
+    setIsPlaying(true);
+    const languagePref = getLanguagePreference();
+    
+    try {
+      if (languagePref === 'tamil' && selectedLesson.contentTamil) {
+        // Play only Tamil
+        await speakWithTTS({
+          text: selectedLesson.contentTamil,
+          languageCode: 'ta-IN'
+        });
+      } else if (languagePref === 'english' && selectedLesson.content) {
+        // Play only English
+        await speakWithTTS({
+          text: selectedLesson.content,
+          languageCode: 'en-US'
+        });
+      } else {
+        // Bilingual: Play both
+        if (selectedLesson.content) {
+          await speakWithTTS({
+            text: selectedLesson.content,
+            languageCode: 'en-US'
+          });
+        }
+        if (selectedLesson.contentTamil) {
+          await speakWithTTS({
+            text: selectedLesson.contentTamil,
+            languageCode: 'ta-IN'
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error playing audio:', error);
+    } finally {
+      setIsPlaying(false);
     }
   };
 
@@ -243,21 +327,37 @@ const CoursePage = () => {
                     </div>
                     
                     <div className="space-y-6">
-                      {lessonContent.contentTamil && (
-                        <div className="p-6 bg-primary/5 rounded-2xl">
-                          <p className="text-xl leading-relaxed text-foreground font-medium" lang="ta">
-                            {lessonContent.contentTamil}
-                          </p>
-                        </div>
-                      )}
-                      
-                      {lessonContent.content && (
-                        <div className="p-6 bg-accent/5 rounded-2xl">
-                          <p className="text-xl leading-relaxed text-foreground">
-                            {lessonContent.content}
-                          </p>
-                        </div>
-                      )}
+                      {(() => {
+                        const langPref = getLanguagePreference();
+                        const showTamil = langPref === 'tamil' || langPref === 'bilingual';
+                        const showEnglish = langPref === 'english' || langPref === 'bilingual';
+                        
+                        return (
+                          <>
+                            {showTamil && lessonContent.contentTamil && (
+                              <div className="p-6 bg-primary/5 rounded-2xl">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-sm font-semibold text-primary">தமிழ் / Tamil</span>
+                                </div>
+                                <p className="text-xl leading-relaxed text-foreground font-medium" lang="ta">
+                                  {lessonContent.contentTamil}
+                                </p>
+                              </div>
+                            )}
+                            
+                            {showEnglish && lessonContent.content && (
+                              <div className="p-6 bg-accent/5 rounded-2xl">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-sm font-semibold text-accent-foreground">English / ஆங்கிலம்</span>
+                                </div>
+                                <p className="text-xl leading-relaxed text-foreground">
+                                  {lessonContent.content}
+                                </p>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </Card>
                 </section>

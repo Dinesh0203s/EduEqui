@@ -2,9 +2,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL 
   ? `${import.meta.env.VITE_API_URL}/api`
-  : (process.env.REACT_APP_BACKEND_URL 
-      ? `${process.env.REACT_APP_BACKEND_URL}/api`
-      : "http://localhost:8001/api");
+  : (import.meta.env.VITE_BACKEND_URL 
+      ? `${import.meta.env.VITE_BACKEND_URL}/api`
+      : "http://localhost:5000/api");
 
 // Types
 export interface Lesson {
