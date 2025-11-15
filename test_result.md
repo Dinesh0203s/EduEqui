@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Complete comprehensive accessibility implementation for EduEqui application with enhanced ARIA labels, landmarks, and mobility improvements"
+user_problem_statement: "Add login and signup with onboarding details (disabilities), permanent login (JWT tokens), and profile edit options to EduEqui application"
 
 backend:
   - task: "TTS API Endpoint"
