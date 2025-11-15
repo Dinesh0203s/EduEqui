@@ -434,6 +434,555 @@ class BackendTester:
         except Exception as e:
             self.log_result("Data Auto-Seeding", False, f"Connection error: {str(e)}")
     
+    def test_auth_signup(self):
+        """Test POST /api/auth/signup endpoint"""
+        print("\n=== Testing Authentication - Signup ===")
+        
+        # Test 1: Valid signup with complete data
+        try:
+            test_user_data = {
+                "name": "Sarah Johnson",
+                "email": "sarah.johnson@eduequi.com",
+                "password": "securepass123",
+                "disability_types": {
+                    "vision": True,
+                    "hearing": False,
+                    "motor": True,
+                    "cognitive": False,
+                    "other": "Low vision"
+                },
+                "age": 25,
+                "language_preference": "en",
+                "grade_level": "grade-10"
+            }
+            
+            response = requests.post(
+                f"{API_BASE}/auth/signup",
+                json=test_user_data,
+                headers={"Content-Type": "application/json"},
+                timeout=15
+            )
+            
+            if response.status_code == 201:
+                data = response.json()
+                required_fields = ["user", "token", "token_type"]
+                if all(field in data for field in required_fields):
+                    user_data = data["user"]
+                    user_required_fields = ["id", "name", "email", "disability_types", "age", "language_preference", "grade_level", "created_at"]
+                    if all(field in user_data for field in user_required_fields):
+                        # Store token for later tests
+                        self.auth_token = data["token"]
+                        self.test_user_id = user_data["id"]
+                        self.test_user_email = test_user_data["email"]
+                        self.log_result("Auth Signup Valid", True, f"User created successfully: {user_data['name']} ({user_data['email']})")
+                    else:
+                        self.log_result("Auth Signup Valid", False, f"Missing user fields: {user_required_fields}")
+                else:
+                    self.log_result("Auth Signup Valid", False, f"Missing response fields: {required_fields}")
+            else:
+                self.log_result("Auth Signup Valid", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_result("Auth Signup Valid", False, f"Connection error: {str(e)}")
+        
+        # Test 2: Duplicate email registration (should fail)
+        try:
+            duplicate_data = {
+                "name": "Another User",
+                "email": "sarah.johnson@eduequi.com",  # Same email as above
+                "password": "anotherpass123",
+                "disability_types": {
+                    "vision": False,
+                    "hearing": True,
+                    "motor": False,
+                    "cognitive": False,
+                    "other": None
+                },
+                "age": 30,
+                "language_preference": "ta",
+                "grade_level": "grade-12"
+            }
+            
+            response = requests.post(
+                f"{API_BASE}/auth/signup",
+                json=duplicate_data,
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 400:
+                data = response.json()
+                if "already registered" in data.get("detail", "").lower():
+                    self.log_result("Auth Signup Duplicate", True, "Correctly rejected duplicate email")
+                else:
+                    self.log_result("Auth Signup Duplicate", False, f"Wrong error message: {data}")
+            else:
+                self.log_result("Auth Signup Duplicate", False, f"Expected 400, got {response.status_code}")
+        except Exception as e:
+            self.log_result("Auth Signup Duplicate", False, f"Connection error: {str(e)}")
+        
+        # Test 3: Invalid email format
+        try:
+            invalid_email_data = {
+                "name": "Test User",
+                "email": "invalid-email-format",
+                "password": "testpass123",
+                "disability_types": {
+                    "vision": False,
+                    "hearing": False,
+                    "motor": False,
+                    "cognitive": False,
+                    "other": None
+                },
+                "age": 20,
+                "language_preference": "en",
+                "grade_level": "grade-8"
+            }
+            
+            response = requests.post(
+                f"{API_BASE}/auth/signup",
+                json=invalid_email_data,
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 422:  # Validation error
+                self.log_result("Auth Signup Invalid Email", True, "Correctly rejected invalid email format")
+            else:
+                self.log_result("Auth Signup Invalid Email", False, f"Expected 422, got {response.status_code}")
+        except Exception as e:
+            self.log_result("Auth Signup Invalid Email", False, f"Connection error: {str(e)}")
+        
+        # Test 4: Password too short
+        try:
+            short_password_data = {
+                "name": "Test User",
+                "email": "shortpass@eduequi.com",
+                "password": "123",  # Less than 6 characters
+                "disability_types": {
+                    "vision": False,
+                    "hearing": False,
+                    "motor": False,
+                    "cognitive": False,
+                    "other": None
+                },
+                "age": 20,
+                "language_preference": "en",
+                "grade_level": "grade-8"
+            }
+            
+            response = requests.post(
+                f"{API_BASE}/auth/signup",
+                json=short_password_data,
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 422:  # Validation error
+                self.log_result("Auth Signup Short Password", True, "Correctly rejected short password")
+            else:
+                self.log_result("Auth Signup Short Password", False, f"Expected 422, got {response.status_code}")
+        except Exception as e:
+            self.log_result("Auth Signup Short Password", False, f"Connection error: {str(e)}")
+    
+    def test_auth_login(self):
+        """Test POST /api/auth/login endpoint"""
+        print("\n=== Testing Authentication - Login ===")
+        
+        # Test 1: Valid login with credentials from signup
+        try:
+            login_data = {
+                "email": "sarah.johnson@eduequi.com",
+                "password": "securepass123"
+            }
+            
+            response = requests.post(
+                f"{API_BASE}/auth/login",
+                json=login_data,
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ["user", "token", "token_type"]
+                if all(field in data for field in required_fields):
+                    user_data = data["user"]
+                    if (user_data.get("email") == login_data["email"] and 
+                        user_data.get("name") == "Sarah Johnson"):
+                        # Update token for subsequent tests
+                        self.auth_token = data["token"]
+                        self.log_result("Auth Login Valid", True, f"Login successful for {user_data['name']}")
+                    else:
+                        self.log_result("Auth Login Valid", False, f"Incorrect user data returned: {user_data}")
+                else:
+                    self.log_result("Auth Login Valid", False, f"Missing response fields: {required_fields}")
+            else:
+                self.log_result("Auth Login Valid", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_result("Auth Login Valid", False, f"Connection error: {str(e)}")
+        
+        # Test 2: Invalid email
+        try:
+            invalid_email_login = {
+                "email": "nonexistent@eduequi.com",
+                "password": "securepass123"
+            }
+            
+            response = requests.post(
+                f"{API_BASE}/auth/login",
+                json=invalid_email_login,
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 401:
+                data = response.json()
+                if "incorrect" in data.get("detail", "").lower():
+                    self.log_result("Auth Login Invalid Email", True, "Correctly rejected invalid email")
+                else:
+                    self.log_result("Auth Login Invalid Email", False, f"Wrong error message: {data}")
+            else:
+                self.log_result("Auth Login Invalid Email", False, f"Expected 401, got {response.status_code}")
+        except Exception as e:
+            self.log_result("Auth Login Invalid Email", False, f"Connection error: {str(e)}")
+        
+        # Test 3: Incorrect password
+        try:
+            wrong_password_login = {
+                "email": "sarah.johnson@eduequi.com",
+                "password": "wrongpassword"
+            }
+            
+            response = requests.post(
+                f"{API_BASE}/auth/login",
+                json=wrong_password_login,
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 401:
+                data = response.json()
+                if "incorrect" in data.get("detail", "").lower():
+                    self.log_result("Auth Login Wrong Password", True, "Correctly rejected incorrect password")
+                else:
+                    self.log_result("Auth Login Wrong Password", False, f"Wrong error message: {data}")
+            else:
+                self.log_result("Auth Login Wrong Password", False, f"Expected 401, got {response.status_code}")
+        except Exception as e:
+            self.log_result("Auth Login Wrong Password", False, f"Connection error: {str(e)}")
+    
+    def test_auth_get_current_user(self):
+        """Test GET /api/auth/me endpoint"""
+        print("\n=== Testing Authentication - Get Current User ===")
+        
+        # Test 1: Valid token
+        try:
+            if not hasattr(self, 'auth_token'):
+                self.log_result("Auth Get User Valid Token", False, "No auth token available from previous tests")
+                return
+            
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            response = requests.get(
+                f"{API_BASE}/auth/me",
+                headers=headers,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ["id", "name", "email", "disability_types", "age", "language_preference", "grade_level", "created_at"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    if (data.get("email") == "sarah.johnson@eduequi.com" and 
+                        data.get("name") == "Sarah Johnson"):
+                        # Verify password is not returned
+                        if "password" not in data and "password_hash" not in data:
+                            self.log_result("Auth Get User Valid Token", True, f"Retrieved user profile: {data['name']} ({data['email']})")
+                        else:
+                            self.log_result("Auth Get User Valid Token", False, "Password data leaked in response")
+                    else:
+                        self.log_result("Auth Get User Valid Token", False, f"Incorrect user data: {data}")
+                else:
+                    self.log_result("Auth Get User Valid Token", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_result("Auth Get User Valid Token", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_result("Auth Get User Valid Token", False, f"Connection error: {str(e)}")
+        
+        # Test 2: No Authorization header
+        try:
+            response = requests.get(
+                f"{API_BASE}/auth/me",
+                timeout=10
+            )
+            
+            if response.status_code == 401:
+                self.log_result("Auth Get User No Token", True, "Correctly rejected request without Authorization header")
+            else:
+                self.log_result("Auth Get User No Token", False, f"Expected 401, got {response.status_code}")
+        except Exception as e:
+            self.log_result("Auth Get User No Token", False, f"Connection error: {str(e)}")
+        
+        # Test 3: Invalid token
+        try:
+            headers = {"Authorization": "Bearer invalid-token-12345"}
+            response = requests.get(
+                f"{API_BASE}/auth/me",
+                headers=headers,
+                timeout=10
+            )
+            
+            if response.status_code == 401:
+                self.log_result("Auth Get User Invalid Token", True, "Correctly rejected invalid token")
+            else:
+                self.log_result("Auth Get User Invalid Token", False, f"Expected 401, got {response.status_code}")
+        except Exception as e:
+            self.log_result("Auth Get User Invalid Token", False, f"Connection error: {str(e)}")
+    
+    def test_auth_update_profile(self):
+        """Test PUT /api/auth/profile endpoint"""
+        print("\n=== Testing Authentication - Update Profile ===")
+        
+        # Test 1: Update name with valid token
+        try:
+            if not hasattr(self, 'auth_token'):
+                self.log_result("Auth Update Profile Name", False, "No auth token available from previous tests")
+                return
+            
+            update_data = {
+                "name": "Sarah Johnson Updated"
+            }
+            
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            response = requests.put(
+                f"{API_BASE}/auth/profile",
+                json=update_data,
+                headers={**headers, "Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("name") == "Sarah Johnson Updated":
+                    self.log_result("Auth Update Profile Name", True, f"Successfully updated name to: {data['name']}")
+                else:
+                    self.log_result("Auth Update Profile Name", False, f"Name not updated correctly: {data}")
+            else:
+                self.log_result("Auth Update Profile Name", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_result("Auth Update Profile Name", False, f"Connection error: {str(e)}")
+        
+        # Test 2: Update disability types
+        try:
+            if not hasattr(self, 'auth_token'):
+                self.log_result("Auth Update Profile Disability", False, "No auth token available")
+                return
+            
+            update_data = {
+                "disability_types": {
+                    "vision": True,
+                    "hearing": True,
+                    "motor": False,
+                    "cognitive": True,
+                    "other": "Updated disability info"
+                }
+            }
+            
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            response = requests.put(
+                f"{API_BASE}/auth/profile",
+                json=update_data,
+                headers={**headers, "Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                disability_types = data.get("disability_types", {})
+                if (disability_types.get("hearing") == True and 
+                    disability_types.get("cognitive") == True and
+                    disability_types.get("other") == "Updated disability info"):
+                    self.log_result("Auth Update Profile Disability", True, "Successfully updated disability types")
+                else:
+                    self.log_result("Auth Update Profile Disability", False, f"Disability types not updated correctly: {disability_types}")
+            else:
+                self.log_result("Auth Update Profile Disability", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_result("Auth Update Profile Disability", False, f"Connection error: {str(e)}")
+        
+        # Test 3: Update multiple fields
+        try:
+            if not hasattr(self, 'auth_token'):
+                self.log_result("Auth Update Profile Multiple", False, "No auth token available")
+                return
+            
+            update_data = {
+                "age": 26,
+                "language_preference": "ta",
+                "grade_level": "grade-12"
+            }
+            
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            response = requests.put(
+                f"{API_BASE}/auth/profile",
+                json=update_data,
+                headers={**headers, "Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if (data.get("age") == 26 and 
+                    data.get("language_preference") == "ta" and
+                    data.get("grade_level") == "grade-12"):
+                    self.log_result("Auth Update Profile Multiple", True, "Successfully updated multiple fields")
+                else:
+                    self.log_result("Auth Update Profile Multiple", False, f"Fields not updated correctly: {data}")
+            else:
+                self.log_result("Auth Update Profile Multiple", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_result("Auth Update Profile Multiple", False, f"Connection error: {str(e)}")
+        
+        # Test 4: Update without Authorization header
+        try:
+            update_data = {"name": "Should Fail"}
+            
+            response = requests.put(
+                f"{API_BASE}/auth/profile",
+                json=update_data,
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 401:
+                self.log_result("Auth Update Profile No Token", True, "Correctly rejected update without token")
+            else:
+                self.log_result("Auth Update Profile No Token", False, f"Expected 401, got {response.status_code}")
+        except Exception as e:
+            self.log_result("Auth Update Profile No Token", False, f"Connection error: {str(e)}")
+    
+    def test_auth_change_password(self):
+        """Test PUT /api/auth/password endpoint"""
+        print("\n=== Testing Authentication - Change Password ===")
+        
+        # Test 1: Valid password change
+        try:
+            if not hasattr(self, 'auth_token'):
+                self.log_result("Auth Change Password Valid", False, "No auth token available from previous tests")
+                return
+            
+            password_data = {
+                "current_password": "securepass123",
+                "new_password": "newsecurepass456"
+            }
+            
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            response = requests.put(
+                f"{API_BASE}/auth/password",
+                json=password_data,
+                headers={**headers, "Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("success") == True:
+                    self.log_result("Auth Change Password Valid", True, "Password changed successfully")
+                    # Store new password for login test
+                    self.new_password = "newsecurepass456"
+                else:
+                    self.log_result("Auth Change Password Valid", False, f"Unexpected response: {data}")
+            else:
+                self.log_result("Auth Change Password Valid", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_result("Auth Change Password Valid", False, f"Connection error: {str(e)}")
+        
+        # Test 2: Incorrect current password
+        try:
+            if not hasattr(self, 'auth_token'):
+                self.log_result("Auth Change Password Wrong Current", False, "No auth token available")
+                return
+            
+            password_data = {
+                "current_password": "wrongcurrentpassword",
+                "new_password": "anothernewpass789"
+            }
+            
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            response = requests.put(
+                f"{API_BASE}/auth/password",
+                json=password_data,
+                headers={**headers, "Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 401:
+                data = response.json()
+                if "incorrect" in data.get("detail", "").lower():
+                    self.log_result("Auth Change Password Wrong Current", True, "Correctly rejected incorrect current password")
+                else:
+                    self.log_result("Auth Change Password Wrong Current", False, f"Wrong error message: {data}")
+            else:
+                self.log_result("Auth Change Password Wrong Current", False, f"Expected 401, got {response.status_code}")
+        except Exception as e:
+            self.log_result("Auth Change Password Wrong Current", False, f"Connection error: {str(e)}")
+        
+        # Test 3: New password too short
+        try:
+            if not hasattr(self, 'auth_token'):
+                self.log_result("Auth Change Password Short New", False, "No auth token available")
+                return
+            
+            password_data = {
+                "current_password": "newsecurepass456",
+                "new_password": "123"  # Less than 6 characters
+            }
+            
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            response = requests.put(
+                f"{API_BASE}/auth/password",
+                json=password_data,
+                headers={**headers, "Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 422:  # Validation error
+                self.log_result("Auth Change Password Short New", True, "Correctly rejected short new password")
+            else:
+                self.log_result("Auth Change Password Short New", False, f"Expected 422, got {response.status_code}")
+        except Exception as e:
+            self.log_result("Auth Change Password Short New", False, f"Connection error: {str(e)}")
+        
+        # Test 4: Verify login with new password
+        try:
+            if not hasattr(self, 'new_password'):
+                self.log_result("Auth Login New Password", False, "New password not available from previous test")
+                return
+            
+            login_data = {
+                "email": "sarah.johnson@eduequi.com",
+                "password": self.new_password
+            }
+            
+            response = requests.post(
+                f"{API_BASE}/auth/login",
+                json=login_data,
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "token" in data and "user" in data:
+                    self.log_result("Auth Login New Password", True, "Successfully logged in with new password")
+                else:
+                    self.log_result("Auth Login New Password", False, f"Invalid login response: {data}")
+            else:
+                self.log_result("Auth Login New Password", False, f"Status: {response.status_code}", response.text)
+        except Exception as e:
+            self.log_result("Auth Login New Password", False, f"Connection error: {str(e)}")
+    
     def run_all_tests(self):
         """Run all backend tests"""
         print(f"🚀 Starting Backend API Tests for EduEqui")
