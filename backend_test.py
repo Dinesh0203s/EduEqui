@@ -447,6 +447,13 @@ class BackendTester:
         self.test_tts_endpoint()
         self.test_tts_error_handling()
         
+        # Course Content API Tests
+        self.test_data_seeding()
+        self.test_courses_endpoint()
+        self.test_specific_course_endpoint()
+        self.test_course_lessons_endpoint()
+        self.test_specific_lesson_endpoint()
+        
         # Print summary
         print("\n" + "=" * 60)
         print("🏁 TEST SUMMARY")
