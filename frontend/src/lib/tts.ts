@@ -51,7 +51,8 @@ const processQueue = async (): Promise<void> => {
       },
       body: JSON.stringify({
         text,
-        lang: languageCode.split('-')[0] // Ensure we only use language code without region
+        language: languageCode.split('-')[0], // Extract language code (en, ta)
+        speed: speed ?? getDefaultSpeed()
       })
     });
 
@@ -59,8 +60,9 @@ const processQueue = async (): Promise<void> => {
       throw new Error('Failed to generate speech');
     }
 
-    // Convert the response to a blob
-    const audioBlob = await response.blob();
+    // Get base64 audio from response
+    const data = await response.json();
+    const audioBlob = base64ToBlob(data.audio_base64, 'audio/mp3');
     const audioUrl = URL.createObjectURL(audioBlob);
     
     return new Promise((resolve) => {
