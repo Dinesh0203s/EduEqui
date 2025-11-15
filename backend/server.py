@@ -25,6 +25,17 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# Security configuration
+SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production-32-chars-min')
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_DAYS = 365 * 10  # 10 years for "permanent" login
+
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# HTTP Bearer security
+security = HTTPBearer()
+
 # Create the main app without a prefix
 app = FastAPI()
 
