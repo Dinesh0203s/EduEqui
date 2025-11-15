@@ -2,7 +2,11 @@ import { Mail, Github, Heart } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-card border-t border-border mt-auto">
+    <footer 
+      className="bg-card border-t border-border mt-auto" 
+      role="contentinfo"
+      aria-label="Site footer"
+    >
       <div className="container mx-auto px-4 py-8">
         <div className="grid md:grid-cols-3 gap-6 text-center md:text-left">
           <div>
