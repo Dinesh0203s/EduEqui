@@ -13,7 +13,7 @@ import CategorySelection from "./pages/CategorySelection";
 import LanguageSelect from "./pages/LanguageSelect";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-import CoursePage from "./pages/CoursePage";
+import CoursePageNew from "./pages/CoursePageNew";
 import QuizPage from "./pages/QuizPage";
 import ResultPage from "./pages/ResultPage";
 import Settings from "./pages/Settings";
