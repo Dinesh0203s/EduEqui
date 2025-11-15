@@ -38,6 +38,16 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+class TTSRequest(BaseModel):
+    text: str = Field(..., max_length=4096, description="Text to convert to speech")
+    language: str = Field(default="en", description="Language code: en or ta")
+    speed: Optional[float] = Field(default=1.0, ge=0.5, le=2.0, description="Speech speed")
+    voice: Optional[str] = Field(default="alloy", description="Voice to use")
+
+class TTSResponse(BaseModel):
+    audio_base64: str
+    format: str = "mp3"
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
