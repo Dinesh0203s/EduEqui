@@ -142,7 +142,7 @@ const CoursePage = () => {
             {/* Course Header */}
             <section className="text-center mb-12" aria-labelledby="course-title">
               <BookOpen className="w-16 h-16 text-primary mx-auto mb-4" aria-hidden="true" />
-              <h1 className="text-4xl md:text-5xl font-bold mb-2 text-primary">
+              <h1 id="course-title" className="text-4xl md:text-5xl font-bold mb-2 text-primary" lang="ta">
                 {course.titleTamil || course.title}
               </h1>
               <h2 className="text-3xl font-bold text-muted-foreground">
@@ -151,7 +151,7 @@ const CoursePage = () => {
               <p className="text-lg text-muted-foreground mt-4 max-w-2xl mx-auto">
                 {course.description}
               </p>
-            </div>
+            </section>
 
             {/* Lessons Navigation */}
             {lessons.length > 0 && (
