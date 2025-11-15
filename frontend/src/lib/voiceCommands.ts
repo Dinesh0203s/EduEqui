@@ -53,6 +53,30 @@ export const createVoiceCommands = (
     category: 'navigation'
   },
   {
+    patterns: ['go to maths', 'open maths', 'maths course', 'mathematics course', 'show maths', 'learn maths'],
+    action: () => navigate('/course/course-maths'),
+    description: 'Go to Mathematics course',
+    category: 'navigation'
+  },
+  {
+    patterns: ['go to science', 'open science', 'science course', 'show science', 'learn science'],
+    action: () => navigate('/course/course-science'),
+    description: 'Go to Science course',
+    category: 'navigation'
+  },
+  {
+    patterns: ['go to english', 'open english', 'english course', 'show english', 'learn english'],
+    action: () => navigate('/course/course-english'),
+    description: 'Go to English course',
+    category: 'navigation'
+  },
+  {
+    patterns: ['go to tamil', 'open tamil', 'tamil course', 'show tamil', 'learn tamil'],
+    action: () => navigate('/course/course-tamil'),
+    description: 'Go to Tamil course',
+    category: 'navigation'
+  },
+  {
     patterns: ['go back', 'back', 'previous page', 'navigate back'],
     action: () => window.history.back(),
     description: 'Go to previous page',
