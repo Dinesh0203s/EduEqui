@@ -131,6 +131,18 @@ export const createVoiceCommands = (
     category: 'action'
   },
   {
+    patterns: ['pause audio', 'pause speaking', 'pause reading', 'pause speech'],
+    action: () => pauseTTS?.(),
+    description: 'Pause audio playback',
+    category: 'action'
+  },
+  {
+    patterns: ['resume audio', 'resume speaking', 'resume reading', 'continue audio', 'continue speaking'],
+    action: () => resumeTTS?.(),
+    description: 'Resume audio playback',
+    category: 'action'
+  },
+  {
     patterns: ['scroll down', 'scroll page down', 'go down'],
     action: () => window.scrollBy({ top: 300, behavior: 'smooth' }),
     description: 'Scroll down',
