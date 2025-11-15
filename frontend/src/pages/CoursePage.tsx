@@ -107,10 +107,19 @@ const CoursePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Skip to main content link for screen readers */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:shadow-lg"
+        aria-label="Skip to main content"
+      >
+        Skip to main content
+      </a>
+      
       <Header />
       <AccessibilityToolbar />
       
-      <main className="flex-1 py-12 px-4">
+      <main className="flex-1 py-12 px-4" id="main-content" role="main" aria-label="Course content main area">
         <div className="container mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
