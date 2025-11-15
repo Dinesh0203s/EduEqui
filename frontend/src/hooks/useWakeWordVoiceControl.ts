@@ -13,7 +13,23 @@ const SpeechRecognition =
     : null;
 
 const WAKE_WORD = 'edu help';
-const WAKE_WORD_VARIANTS = ['edu help', 'eduequi help', 'education help', 'edu', 'help edu'];
+// Primary wake words (like "OK Google")
+const WAKE_WORD_VARIANTS = [
+  'edu help',
+  'hey edu',
+  'okay edu',
+  'ok edu',
+  'edu',
+  // Shorter variants for faster activation
+  'edu help me',
+  'edu assistance',
+  // Handle common speech recognition variations
+  'e d u help',
+  'e d u',
+  'ed you help',
+  'ed you',
+  'hey ed you',
+];
 
 export interface WakeWordVoiceControlState {
   isListening: boolean;
@@ -124,10 +140,35 @@ export const useWakeWordVoiceControl = () => {
     );
   }, [navigate, updateFontSize, updateHighContrast, settings.fontSize, settings.highContrast, speakHelp, courseControlActions]);
 
-  // Check for wake word
+  // Check for wake word (like "OK Google" - fast and responsive)
   const checkWakeWord = useCallback((transcript: string): boolean => {
     const normalized = transcript.toLowerCase().trim();
-    return WAKE_WORD_VARIANTS.some(variant => normalized.includes(variant));
+    
+    // Check for exact matches first (faster)
+    for (const variant of WAKE_WORD_VARIANTS) {
+      const variantLower = variant.toLowerCase();
+      
+      // Exact match at start or anywhere
+      if (normalized === variantLower || 
+          normalized.startsWith(variantLower + ' ') ||
+          normalized.endsWith(' ' + variantLower) ||
+          normalized.includes(' ' + variantLower + ' ')) {
+        console.log('🎤 Wake word detected!', variant, 'from:', normalized);
+        return true;
+      }
+      
+      // Partial match (for variations)
+      if (normalized.includes(variantLower)) {
+        // Make sure it's not part of another word
+        const words = normalized.split(/\s+/);
+        if (words.some(word => word.includes(variantLower) && word.length <= variantLower.length + 2)) {
+          console.log('🎤 Wake word detected!', variant, 'from:', normalized);
+          return true;
+        }
+      }
+    }
+    
+    return false;
   }, []);
 
   // Initialize continuous speech recognition
@@ -145,6 +186,13 @@ export const useWakeWordVoiceControl = () => {
     recognition.interimResults = true; // Get interim results for wake word detection
     recognition.lang = 'en-US';
     recognition.maxAlternatives = 1;
+    
+    // Prevent automatic stopping on silence
+    // This helps keep recognition running continuously
+    let isManuallyStopped = false;
+    let restartTimeout: NodeJS.Timeout | null = null;
+    let lastRestartTime = 0;
+    const MIN_RESTART_INTERVAL = 1000; // Minimum 1 second between restarts
 
     let lastFinalTranscript = '';
 
@@ -168,40 +216,96 @@ export const useWakeWordVoiceControl = () => {
       const fullTranscript = (finalTranscript + interimTranscript).trim();
       setState(prev => ({ ...prev, transcript: fullTranscript }));
 
-      // Check for wake word in final results
-      if (finalTranscript && finalTranscript !== lastFinalTranscript) {
-        lastFinalTranscript = finalTranscript;
-        
-        if (checkWakeWord(finalTranscript)) {
-          // Wake word detected!
+      // Check for wake word in both interim and final results
+      const textToCheck = fullTranscript.toLowerCase().trim();
+      // Only log when there's actual speech (not empty)
+      if (textToCheck.length > 0) {
+        console.log('Speech detected:', textToCheck, 'Wake word active:', wakeWordActiveRef.current);
+      }
+
+      // Check wake word in interim results (faster detection - like OK Google)
+      if (interimTranscript && !wakeWordActiveRef.current) {
+        const interimCheck = interimTranscript.toLowerCase().trim();
+        if (checkWakeWord(interimCheck)) {
+          console.log('🎤 Wake word detected in interim results!');
           wakeWordActiveRef.current = true;
           setState(prev => ({ ...prev, isWakeWordActive: true }));
           
-          // Play wake word confirmation sound
+          // Immediate visual feedback (like Google)
+          setState(prev => ({ ...prev, transcript: 'Listening...' }));
+          
+          // Play wake word confirmation sound (like Google's beep)
           const audioContext = new AudioContext();
           const oscillator = audioContext.createOscillator();
           const gainNode = audioContext.createGain();
           oscillator.connect(gainNode);
           gainNode.connect(audioContext.destination);
-          oscillator.frequency.value = 1000;
-          gainNode.gain.value = 0.3;
+          oscillator.frequency.value = 1200; // Higher pitch like Google
+          gainNode.gain.value = 0.4;
           oscillator.start();
-          setTimeout(() => oscillator.stop(), 200);
+          setTimeout(() => oscillator.stop(), 150);
 
-          // Speak confirmation
+          // Quick confirmation (shorter, like Google)
           speakWithTTS({ 
-            text: 'Voice commands activated. What would you like to do?', 
-            languageCode: 'en-US' 
+            text: 'Yes, how can I help?', 
+            languageCode: 'en-US',
+            force: true // Interrupt any current speech
           });
 
-          // Set timeout to deactivate wake word after 10 seconds
+          // Set timeout to deactivate wake word after 8 seconds (like Google)
           if (wakeWordTimeoutRef.current) {
             clearTimeout(wakeWordTimeoutRef.current);
           }
           wakeWordTimeoutRef.current = setTimeout(() => {
             wakeWordActiveRef.current = false;
             setState(prev => ({ ...prev, isWakeWordActive: false }));
-          }, 10000); // 10 seconds to give commands
+            console.log('Wake word deactivated after timeout');
+          }, 8000); // 8 seconds to give commands
+
+          return; // Don't process wake word as a command
+        }
+      }
+
+      // Check for wake word in final results
+      if (finalTranscript && finalTranscript !== lastFinalTranscript) {
+        lastFinalTranscript = finalTranscript;
+        
+        if (!wakeWordActiveRef.current && checkWakeWord(finalTranscript)) {
+          console.log('🎤 Wake word detected in final results!');
+          // Wake word detected!
+          wakeWordActiveRef.current = true;
+          setState(prev => ({ ...prev, isWakeWordActive: true }));
+          
+          // Immediate visual feedback
+          setState(prev => ({ ...prev, transcript: 'Listening...' }));
+          
+          // Play wake word confirmation sound (like Google's beep)
+          const audioContext = new AudioContext();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          oscillator.frequency.value = 1200; // Higher pitch like Google
+          gainNode.gain.value = 0.4;
+          oscillator.start();
+          setTimeout(() => oscillator.stop(), 150);
+
+          // Quick confirmation (shorter, like Google)
+          speakWithTTS({ 
+            text: 'Yes, how can I help?', 
+            languageCode: 'en-US',
+            force: true // Interrupt any current speech
+          });
+
+          // Set timeout to deactivate wake word after 8 seconds (like Google)
+          if (wakeWordTimeoutRef.current) {
+            clearTimeout(wakeWordTimeoutRef.current);
+          }
+          wakeWordTimeoutRef.current = setTimeout(() => {
+            wakeWordActiveRef.current = false;
+            setState(prev => ({ ...prev, isWakeWordActive: false }));
+            console.log('Wake word deactivated after timeout');
+          }, 8000); // 8 seconds to give commands
 
           return; // Don't process wake word as a command
         }
@@ -209,9 +313,11 @@ export const useWakeWordVoiceControl = () => {
 
       // Only process commands if wake word is active
       if (wakeWordActiveRef.current && finalTranscript && finalTranscript !== lastFinalTranscript) {
+        console.log('Processing command:', finalTranscript);
         const command = matchVoiceCommand(finalTranscript, commandsRef.current);
         
         if (command) {
+          console.log('Command matched:', command.description);
           // Success audio feedback
           const audioContext = new AudioContext();
           const oscillator = audioContext.createOscillator();
@@ -232,10 +338,8 @@ export const useWakeWordVoiceControl = () => {
             description: `"${finalTranscript}" - ${command.description}`,
             duration: 2000,
           });
-
-          // Reset wake word after command (optional - can keep active)
-          // wakeWordActiveRef.current = false;
-          // setState(prev => ({ ...prev, isWakeWordActive: false }));
+        } else {
+          console.log('No command matched for:', finalTranscript);
         }
       }
     };
@@ -245,14 +349,29 @@ export const useWakeWordVoiceControl = () => {
       
       switch (event.error) {
         case 'no-speech':
-          // Don't show error for no-speech in continuous mode
+          // Don't show error for no-speech in continuous mode - it will auto-restart
+          // Don't stop listening, just let it continue
+          return;
+        case 'aborted':
+          // Recognition was aborted - don't restart if manually stopped
+          if (isManuallyStopped) {
+            return;
+          }
+          // Otherwise, it will restart via onend
           return;
         case 'audio-capture':
           errorMessage = 'Microphone not available. Please check permissions.';
           break;
         case 'not-allowed':
           errorMessage = 'Microphone access denied. Please enable microphone permissions.';
-          break;
+          setState(prev => ({ ...prev, error: errorMessage, isListening: false }));
+          toast({
+            title: 'Voice Recognition Error',
+            description: errorMessage,
+            variant: 'destructive',
+            duration: 4000,
+          });
+          return;
         case 'network':
           errorMessage = 'Network error. Please check your connection.';
           break;
@@ -260,9 +379,10 @@ export const useWakeWordVoiceControl = () => {
           errorMessage = `Error: ${event.error}`;
       }
 
-      setState(prev => ({ ...prev, error: errorMessage, isListening: false }));
-      
-      if (event.error !== 'no-speech') {
+      // Only update state for serious errors
+      if (event.error !== 'no-speech' && event.error !== 'aborted') {
+        setState(prev => ({ ...prev, error: errorMessage }));
+        
         toast({
           title: 'Voice Recognition Error',
           description: errorMessage,
@@ -273,14 +393,44 @@ export const useWakeWordVoiceControl = () => {
     };
 
     recognition.onend = () => {
-      // Restart recognition automatically for continuous listening
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.start();
-        } catch (error) {
-          // Ignore errors when restarting
-          console.log('Restarting voice recognition...');
-        }
+      // Clear any pending restart
+      if (restartTimeout) {
+        clearTimeout(restartTimeout);
+        restartTimeout = null;
+      }
+
+      // Only restart if we're still supposed to be listening and not manually stopped
+      if (isManuallyStopped) {
+        return;
+      }
+
+      // Check if recognition state is still valid
+      if (recognitionRef.current && recognitionRef.current === recognition) {
+        const now = Date.now();
+        const timeSinceLastRestart = now - lastRestartTime;
+        
+        // Prevent rapid restarts - wait at least MIN_RESTART_INTERVAL
+        const delay = Math.max(500, MIN_RESTART_INTERVAL - timeSinceLastRestart);
+        
+        restartTimeout = setTimeout(() => {
+          if (isManuallyStopped) {
+            return;
+          }
+          
+          try {
+            // Check if already started or if recognition is still valid
+            if (recognitionRef.current && recognitionRef.current === recognition) {
+              recognitionRef.current.start();
+              lastRestartTime = Date.now();
+            }
+          } catch (error: any) {
+            // Only log if it's not the "already started" error
+            if (error.name !== 'InvalidStateError' || !error.message.includes('already started')) {
+              // Silently handle - recognition might already be running
+            }
+          }
+          restartTimeout = null;
+        }, delay);
       }
     };
 
@@ -289,16 +439,40 @@ export const useWakeWordVoiceControl = () => {
     // Start listening immediately
     try {
       recognition.start();
+      console.log('🎤 Voice recognition started - always listening for "edu help"');
     } catch (error) {
       console.error('Error starting voice recognition:', error);
+      // Try again after a short delay
+      setTimeout(() => {
+        try {
+          recognition.start();
+          console.log('🎤 Voice recognition started on retry');
+        } catch (retryError) {
+          console.error('Failed to start voice recognition on retry:', retryError);
+        }
+      }, 1000);
     }
 
     return () => {
+      isManuallyStopped = true;
+      
+      // Clear all timeouts
+      if (restartTimeout) {
+        clearTimeout(restartTimeout);
+        restartTimeout = null;
+      }
       if (wakeWordTimeoutRef.current) {
         clearTimeout(wakeWordTimeoutRef.current);
       }
+      
+      // Stop recognition
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (error) {
+          // Ignore errors when stopping
+        }
+        recognitionRef.current = null;
       }
     };
   }, [checkWakeWord, speakHelp]);

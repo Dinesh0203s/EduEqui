@@ -1,6 +1,6 @@
-import { Mic, MicOff, HelpCircle, Radio } from "lucide-react";
+import { Mic, MicOff, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useWakeWordVoiceControl } from "@/hooks/useWakeWordVoiceControl";
+import { useVoiceRecognition } from "@/hooks/useVoiceRecognition";
 import { useEffect, useState } from "react";
 import {
   Dialog,
@@ -15,10 +15,10 @@ const VoiceControl = () => {
   const { 
     isListening, 
     isSupported, 
-    isWakeWordActive,
+    startListening, 
     transcript,
     speakHelp 
-  } = useWakeWordVoiceControl();
+  } = useVoiceRecognition();
   
   const [showTranscript, setShowTranscript] = useState(false);
 
@@ -37,36 +37,29 @@ const VoiceControl = () => {
 
   return (
     <>
-      {/* Voice Control Button - Always On */}
+      {/* Voice Control Button */}
       <div className="fixed bottom-6 left-6 z-50">
         <div className="flex flex-col gap-2 items-center">
-          <div className="relative">
-            <Button
-              size="lg"
-              className={`
-                rounded-full w-16 h-16 shadow-2xl transition-all duration-300
-                ${isWakeWordActive
-                  ? 'bg-green-500 hover:bg-green-600 animate-pulse shadow-green-500/50' 
-                  : isListening 
-                    ? 'bg-blue-500 hover:bg-blue-600 shadow-blue-500/50' 
-                    : 'bg-primary hover:bg-primary/90 shadow-primary/50'
-                }
-              `}
-              aria-label={isWakeWordActive ? "Voice commands active - listening for commands" : isListening ? "Always listening - say 'edu help' to activate" : "Voice control always on"}
-              aria-live="polite"
-              aria-pressed={isListening}
-              disabled
-            >
-              {isWakeWordActive ? (
-                <Radio className="w-8 h-8" aria-hidden="true" />
-              ) : (
-                <Mic className="w-8 h-8" aria-hidden="true" />
-              )}
-            </Button>
-            {isListening && !isWakeWordActive && (
-              <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-500 rounded-full animate-pulse border-2 border-white"></div>
+          <Button
+            onClick={startListening}
+            size="lg"
+            className={`
+              rounded-full w-16 h-16 shadow-2xl transition-all duration-300
+              ${isListening 
+                ? 'bg-red-500 hover:bg-red-600 animate-pulse shadow-red-500/50' 
+                : 'bg-primary hover:bg-primary/90 shadow-primary/50'
+              }
+            `}
+            aria-label={isListening ? "Listening for voice command" : "Start voice control"}
+            aria-live="polite"
+            aria-pressed={isListening}
+          >
+            {isListening ? (
+              <MicOff className="w-8 h-8" aria-hidden="true" />
+            ) : (
+              <Mic className="w-8 h-8" aria-hidden="true" />
             )}
-          </div>
+          </Button>
 
           {/* Help Button */}
           <Dialog>
@@ -90,13 +83,6 @@ const VoiceControl = () => {
               
               <div className="space-y-6 mt-4">
                 <CommandSection
-                  title="🎤 Wake Word"
-                  commands={[
-                    { command: "Edu help", description: "Activate voice commands (say this first!)" },
-                  ]}
-                />
-
-                <CommandSection
                   title="🧭 Navigation"
                   commands={[
                     { command: "Go home", description: "Return to home page" },
@@ -113,8 +99,8 @@ const VoiceControl = () => {
                 <CommandSection
                   title="📚 Course Controls"
                   commands={[
-                    { command: "Pause course", description: "Pause course audio" },
-                    { command: "Resume course", description: "Resume course audio" },
+                    { command: "Pause audio", description: "Pause course audio" },
+                    { command: "Resume audio", description: "Resume course audio" },
                     { command: "Next lesson", description: "Go to next lesson" },
                     { command: "Previous lesson", description: "Go to previous lesson" },
                   ]}
@@ -149,22 +135,12 @@ const VoiceControl = () => {
                   ]}
                 />
 
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <p className="text-sm font-semibold text-green-900 mb-2">🎤 How to Use Voice Commands:</p>
-                  <ol className="text-sm text-green-800 space-y-2 list-decimal list-inside">
-                    <li>Microphone is always listening (blue button at bottom left)</li>
-                    <li>Say <strong>"edu help"</strong> to activate voice commands</li>
-                    <li>Button turns green when active - you have 10 seconds to give commands</li>
-                    <li>Speak your command clearly (e.g., "go to mathematics", "pause course")</li>
-                    <li>Say "edu help" again to reactivate if needed</li>
-                  </ol>
-                </div>
-
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <p className="text-sm font-semibold text-blue-900 mb-2">💡 Tips for Best Results:</p>
                   <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                    <li>Click the microphone button to start listening</li>
+                    <li>Wait for the button to turn red before speaking</li>
                     <li>Speak clearly and at a normal pace</li>
-                    <li>Microphone is always on - no need to click anything</li>
                     <li>You can say commands in different ways (e.g., "go to maths" or "open mathematics")</li>
                     <li>Use Chrome or Firefox for best compatibility</li>
                   </ul>
@@ -187,49 +163,26 @@ const VoiceControl = () => {
       {/* Transcript Display */}
       {showTranscript && transcript && (
         <div 
-          className={`fixed bottom-28 left-6 border-2 rounded-2xl p-4 shadow-2xl max-w-sm z-50 animate-in fade-in slide-in-from-bottom-2 ${
-            isWakeWordActive 
-              ? 'bg-green-50 border-green-500' 
-              : 'bg-card border-primary'
-          }`}
+          className="fixed bottom-28 left-6 bg-card border-2 border-primary rounded-2xl p-4 shadow-2xl max-w-sm z-50 animate-in fade-in slide-in-from-bottom-2"
           role="status"
           aria-live="polite"
           aria-label={`Voice command: ${transcript}`}
         >
-          {isWakeWordActive ? (
-            <>
-              <p className="text-sm font-semibold text-green-700 mb-1">✓ Commands Active - You said:</p>
-              <p className="text-base text-green-900">{transcript}</p>
-            </>
-          ) : (
-            <>
-              <p className="text-sm font-semibold text-primary mb-1">Listening... (Say "edu help" to activate)</p>
-              <p className="text-base text-muted-foreground">{transcript}</p>
-            </>
-          )}
+          <p className="text-sm font-semibold text-primary mb-1">You said:</p>
+          <p className="text-base">{transcript}</p>
         </div>
       )}
 
-      {/* Wake Word Active Indicator */}
-      {isWakeWordActive && (
+      {/* Listening Indicator */}
+      {isListening && (
         <div 
           className="fixed inset-0 pointer-events-none z-40"
           aria-hidden="true"
         >
-          <div className="absolute inset-0 bg-green-500/10 animate-pulse"></div>
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-8 py-4 rounded-full shadow-lg font-semibold flex items-center gap-3 text-lg">
-            <Radio className="w-6 h-6 animate-pulse" />
-            Voice Commands Active - Listening for commands...
-          </div>
-        </div>
-      )}
-
-      {/* Always Listening Indicator (subtle) */}
-      {isListening && !isWakeWordActive && (
-        <div className="fixed bottom-24 left-6 bg-blue-500/90 text-white px-4 py-2 rounded-lg shadow-lg text-sm z-50">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            Always listening - Say "edu help" to activate
+          <div className="absolute inset-0 bg-primary/5 animate-pulse"></div>
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-full shadow-lg font-semibold flex items-center gap-2">
+            <Mic className="w-5 h-5 animate-pulse" />
+            Listening...
           </div>
         </div>
       )}

@@ -55,14 +55,14 @@ export const createVoiceCommands = (
     category: 'navigation'
   },
   {
-    patterns: ['go to mathematics', 'open mathematics', 'mathematics course', 'show mathematics', 'learn mathematics'],
-    action: () => navigate('/course/course-maths'),
+    patterns: ['go to mathematics', 'open mathematics', 'mathematics course', 'show mathematics', 'learn mathematics', 'go to maths', 'open maths', 'maths course', 'show maths', 'learn maths'],
+    action: () => navigate('/course/691828a508e836c68a98310e'),
     description: 'Go to Mathematics course',
     category: 'navigation'
   },
   {
     patterns: ['go to science', 'open science', 'science course', 'show science', 'learn science'],
-    action: () => navigate('/course/course-science'),
+    action: () => navigate('/course/691828a508e836c68a983113'),
     description: 'Go to Science course',
     category: 'navigation'
   },

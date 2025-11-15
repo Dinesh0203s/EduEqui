@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useCourseVoiceActions } from '@/contexts/CourseVoiceControlContext';
 import { createVoiceCommands, matchVoiceCommand, VoiceCommand } from '@/lib/voiceCommands';
-import { stopTTS, speakWithTTS } from '@/lib/tts';
+import { stopTTS, speakWithTTS, pauseTTS, resumeTTS } from '@/lib/tts';
 import { toast } from '@/hooks/use-toast';
 
 // Check if browser supports speech recognition
@@ -22,6 +23,7 @@ export interface VoiceRecognitionState {
 export const useVoiceRecognition = () => {
   const navigate = useNavigate();
   const { settings, updateFontSize, updateHighContrast } = useSettings();
+  const courseActions = useCourseVoiceActions(); // Get course actions if on course page
   
   const [state, setState] = useState<VoiceRecognitionState>({
     isListening: false,
@@ -36,12 +38,14 @@ export const useVoiceRecognition = () => {
 
   // Speak available commands
   const speakHelp = useCallback(async () => {
-    const helpText = "You can say: go home, go to courses, go to settings, start learning, increase font, decrease font, high contrast on, high contrast off, scroll down, scroll up, go back, stop speaking, or help.";
+    const helpText = "You can say: go home, go to courses, go to mathematics, go to maths, go to science, pause audio, resume audio, next lesson, previous lesson, go to settings, start learning, increase font, decrease font, high contrast on, high contrast off, scroll down, scroll up, go back, stop speaking, or help.";
     await speakWithTTS({ text: helpText, languageCode: 'en-US' });
   }, []);
 
-  // Create voice commands
+  // Create voice commands with course controls
   useEffect(() => {
+    const courseControlActions = courseActions || {};
+    
     commandsRef.current = createVoiceCommands(
       navigate,
       updateFontSize,
@@ -49,9 +53,30 @@ export const useVoiceRecognition = () => {
       settings.fontSize,
       settings.highContrast,
       stopTTS,
-      speakHelp
+      speakHelp,
+      courseControlActions.pauseCourse,
+      courseControlActions.resumeCourse
     );
-  }, [navigate, updateFontSize, updateHighContrast, settings.fontSize, settings.highContrast, speakHelp]);
+
+    // Add course-specific commands if available
+    if (courseControlActions.nextLesson) {
+      commandsRef.current.push({
+        patterns: ['next lesson', 'go to next lesson', 'next', 'skip lesson'],
+        action: courseControlActions.nextLesson,
+        description: 'Go to next lesson',
+        category: 'action'
+      });
+    }
+
+    if (courseControlActions.previousLesson) {
+      commandsRef.current.push({
+        patterns: ['previous lesson', 'go to previous lesson', 'previous', 'go back lesson'],
+        action: courseControlActions.previousLesson,
+        description: 'Go to previous lesson',
+        category: 'action'
+      });
+    }
+  }, [navigate, updateFontSize, updateHighContrast, settings.fontSize, settings.highContrast, speakHelp, courseActions]);
 
   // Initialize speech recognition
   useEffect(() => {
