@@ -86,7 +86,10 @@ const Home = () => {
         </section>
 
         {/* Features Section */}
-        <section className="py-20 px-4 bg-muted/30">
+        <section 
+          className="py-20 px-4 bg-muted/30"
+          aria-labelledby="features-title"
+        >
           <div className="container mx-auto max-w-6xl">
             <motion.div
               initial={{ opacity: 0 }}
