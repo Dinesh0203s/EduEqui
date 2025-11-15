@@ -990,6 +990,12 @@ class BackendTester:
         print(f"API Base: {API_BASE}")
         print("=" * 60)
         
+        # Initialize auth token storage
+        self.auth_token = None
+        self.test_user_id = None
+        self.test_user_email = None
+        self.new_password = None
+        
         # Run all test suites
         self.test_root_endpoint()
         self.test_status_endpoints()
@@ -1002,6 +1008,13 @@ class BackendTester:
         self.test_specific_course_endpoint()
         self.test_course_lessons_endpoint()
         self.test_specific_lesson_endpoint()
+        
+        # Authentication API Tests
+        self.test_auth_signup()
+        self.test_auth_login()
+        self.test_auth_get_current_user()
+        self.test_auth_update_profile()
+        self.test_auth_change_password()
         
         # Print summary
         print("\n" + "=" * 60)
