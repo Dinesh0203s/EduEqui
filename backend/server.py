@@ -65,6 +65,51 @@ async def get_status_checks():
     status_checks = await db.status_checks.find().to_list(1000)
     return [StatusCheck(**status_check) for status_check in status_checks]
 
+@api_router.post("/tts", response_model=TTSResponse)
+async def text_to_speech(request: TTSRequest):
+    """
+    Convert text to speech using OpenAI TTS.
+    Supports English (en) and Tamil (ta) languages.
+    Returns base64 encoded MP3 audio.
+    """
+    try:
+        # Initialize TTS client
+        api_key = os.getenv("EMERGENT_LLM_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="TTS API key not configured")
+        
+        tts = OpenAITextToSpeech(api_key=api_key)
+        
+        # Select appropriate voice based on language
+        voice_map = {
+            "en": "alloy",  # Clear, neutral voice for English
+            "ta": "nova",   # Energetic voice works well for Tamil
+        }
+        voice = request.voice or voice_map.get(request.language, "alloy")
+        
+        # Generate speech with base64 output
+        audio_base64 = await tts.generate_speech_base64(
+            text=request.text,
+            model="tts-1",  # Fast model for real-time use
+            voice=voice,
+            speed=request.speed,
+            response_format="mp3"
+        )
+        
+        logger.info(f"Generated TTS for {len(request.text)} chars in {request.language}")
+        
+        return TTSResponse(
+            audio_base64=audio_base64,
+            format="mp3"
+        )
+        
+    except ValueError as e:
+        logger.error(f"TTS validation error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"TTS generation failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate speech")
+
 # Include the router in the main app
 app.include_router(api_router)
 
