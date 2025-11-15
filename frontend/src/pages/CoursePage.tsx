@@ -232,33 +232,35 @@ const CoursePage = () => {
                 </section>
 
                 {/* Text Content Section */}
-                <Card className="p-8 mb-8 gradient-card border-2 border-primary/20 rounded-3xl">
-                  <div className="flex justify-between items-start mb-6">
-                    <h3 className="text-2xl font-bold">Lesson Content / பாட உள்ளடக்கம்</h3>
-                    <VoiceButton 
-                      englishText={lessonContent.content || ""}
-                      tamilText={lessonContent.contentTamil || ""}
-                    />
-                  </div>
-                  
-                  <div className="space-y-6">
-                    {lessonContent.contentTamil && (
-                      <div className="p-6 bg-primary/5 rounded-2xl">
-                        <p className="text-xl leading-relaxed text-foreground font-medium">
-                          {lessonContent.contentTamil}
-                        </p>
-                      </div>
-                    )}
+                <section aria-labelledby="lesson-content-heading">
+                  <Card className="p-8 mb-8 gradient-card border-2 border-primary/20 rounded-3xl">
+                    <div className="flex justify-between items-start mb-6">
+                      <h3 id="lesson-content-heading" className="text-2xl font-bold">Lesson Content / பாட உள்ளடக்கம்</h3>
+                      <VoiceButton 
+                        englishText={lessonContent.content || ""}
+                        tamilText={lessonContent.contentTamil || ""}
+                      />
+                    </div>
                     
-                    {lessonContent.content && (
-                      <div className="p-6 bg-accent/5 rounded-2xl">
-                        <p className="text-xl leading-relaxed text-foreground">
-                          {lessonContent.content}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </Card>
+                    <div className="space-y-6">
+                      {lessonContent.contentTamil && (
+                        <div className="p-6 bg-primary/5 rounded-2xl">
+                          <p className="text-xl leading-relaxed text-foreground font-medium" lang="ta">
+                            {lessonContent.contentTamil}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {lessonContent.content && (
+                        <div className="p-6 bg-accent/5 rounded-2xl">
+                          <p className="text-xl leading-relaxed text-foreground">
+                            {lessonContent.content}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </section>
 
                 {/* ISL Video Section */}
                 {selectedLesson.video && (
