@@ -116,6 +116,18 @@ backend:
       - working: "unknown"
         agent: "main"
         comment: "TTS endpoint exists with OpenAI emergentintegrations. Supports English & Tamil. Returns base64 MP3 audio. Needs testing to verify functionality."
+  
+  - task: "Course Content APIs"
+    implemented: true
+    working: "unknown"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Added GET /api/courses, GET /api/courses/{id}, GET /api/courses/{id}/lessons, GET /api/lessons/{id}. Sample data for Maths and Science courses with video URLs and bilingual transcriptions. Auto-seeds data on first request."
 
 frontend:
   - task: "Enhanced Screen Reader Support - ARIA Labels and Landmarks"
