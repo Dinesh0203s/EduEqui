@@ -14,6 +14,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { speakWithTTS, pauseTTS, resumeTTS, stopTTS } from "@/lib/tts";
 import { useCourseProgress } from "@/hooks/useCourseProgress";
+import { CourseVoiceControlProvider } from "@/contexts/CourseVoiceControlContext";
 
 const CoursePage = () => {
   const navigate = useNavigate();
@@ -210,6 +211,25 @@ const CoursePage = () => {
   const hasPrevious = currentLessonIndex > 0;
   const hasNext = currentLessonIndex >= 0 && currentLessonIndex < lessons.length - 1;
 
+  // Course control actions for voice commands
+  const pauseCourse = () => {
+    if (isPlaying) {
+      pauseTTS();
+      setIsPaused(true);
+      setIsPlaying(false);
+    }
+  };
+
+  const resumeCourse = () => {
+    if (isPaused) {
+      resumeTTS();
+      setIsPaused(false);
+      setIsPlaying(true);
+    } else if (!isPlaying && selectedLesson) {
+      handlePlayPause();
+    }
+  };
+
   const handleTakeQuiz = () => {
     if (selectedLesson?.quizId) {
       navigate("/quiz", { state: { quizId: selectedLesson.quizId, courseId } });
@@ -277,8 +297,17 @@ const CoursePage = () => {
     video: null,
   };
 
+  // Course control actions for voice commands
+  const courseVoiceActions = {
+    pauseCourse,
+    resumeCourse,
+    nextLesson: handleNextLesson,
+    previousLesson: handlePreviousLesson,
+  };
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <CourseVoiceControlProvider actions={courseVoiceActions}>
+      <div className="min-h-screen flex flex-col">
       {/* Skip to main content link for screen readers */}
       <a 
         href="#main-content" 
@@ -558,7 +587,8 @@ const CoursePage = () => {
       </main>
       
       <Footer />
-    </div>
+      </div>
+    </CourseVoiceControlProvider>
   );
 };
 

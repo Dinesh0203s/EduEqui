@@ -71,34 +71,54 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const storedUser = localStorage.getItem('auth_user');
 
       if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-        
-        // Verify token is still valid
         try {
-          const response = await fetch(`${backendUrl}/api/auth/me`, {
-            headers: {
-              'Authorization': `Bearer ${storedToken}`,
-            },
-          });
+          // Set user immediately from localStorage for instant UI update
+          const parsedUser = JSON.parse(storedUser);
+          setToken(storedToken);
+          setUser(parsedUser);
+          
+          // Mark as loaded immediately so UI doesn't wait
+          setIsLoading(false);
+          
+          // Verify token in background (don't block UI)
+          try {
+            const response = await fetch(`${backendUrl}/api/auth/me`, {
+              headers: {
+                'Authorization': `Bearer ${storedToken}`,
+              },
+            });
 
-          if (response.ok) {
-            const userData = await response.json();
-            setUser(userData);
-            localStorage.setItem('auth_user', JSON.stringify(userData));
-          } else {
-            // Token is invalid, clear auth
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('auth_user');
-            setToken(null);
-            setUser(null);
+            if (response.ok) {
+              const userData = await response.json();
+              setUser(userData);
+              localStorage.setItem('auth_user', JSON.stringify(userData));
+            } else if (response.status === 401 || response.status === 403) {
+              // Only clear auth if token is explicitly invalid (401/403)
+              console.warn('Token is invalid, clearing auth');
+              localStorage.removeItem('auth_token');
+              localStorage.removeItem('auth_user');
+              setToken(null);
+              setUser(null);
+            } else {
+              // Network error or server error - keep user logged in
+              console.warn('Could not verify token, but keeping user logged in');
+            }
+          } catch (error) {
+            // Network error - keep user logged in with stored data
+            console.warn('Failed to verify token (network error), keeping user logged in:', error);
           }
         } catch (error) {
-          console.error('Failed to verify token:', error);
+          console.error('Failed to parse stored user data:', error);
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
+          setToken(null);
+          setUser(null);
+          setIsLoading(false);
         }
+      } else {
+        // No stored auth, user is not logged in
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
 
     loadAuth();
