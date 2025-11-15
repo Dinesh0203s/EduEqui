@@ -11,11 +11,12 @@ import { useCourses } from "@/hooks/useAdminApi";
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { data: courses = [], isLoading } = useCourses();
   
   const userName = "ராஜேஷ் / Rajesh";
 
   const handleCourseClick = (courseId: string) => {
-    navigate("/course", { state: { courseId } });
+    navigate(`/course/${courseId}`);
   };
 
   return (
