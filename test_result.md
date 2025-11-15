@@ -163,7 +163,7 @@ frontend:
   - task: "Voice Recognition and Navigation"
     implemented: true
     working: "unknown"
-    file: "/app/frontend/src/hooks/useVoiceRecognition.ts, /app/frontend/src/components/VoiceControl.tsx"
+    file: "/app/frontend/src/hooks/useVoiceRecognition.ts, /app/frontend/src/components/VoiceControl.tsx, /app/frontend/src/lib/voiceCommands.ts"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
@@ -171,6 +171,33 @@ frontend:
       - working: "unknown"
         agent: "main"
         comment: "Voice commands implemented for navigation, accessibility controls, and actions. Includes audio feedback. Already implemented, needs verification."
+      - working: "unknown"
+        agent: "main"
+        comment: "Added course-specific voice navigation commands: 'go to maths', 'go to science', 'go to english', 'go to tamil'. Updated voice commands to support direct course navigation."
+  
+  - task: "Course Content with Video and Transcriptions"
+    implemented: true
+    working: "unknown"
+    file: "/app/frontend/src/pages/CoursePageNew.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Created comprehensive CoursePage with: video player (embedded YouTube), bilingual transcriptions (English/Tamil) in tabs for hearing disability, TTS auto-read for blind users, media controls (play, pause, restart), lesson navigation, bilingual content display."
+  
+  - task: "Dashboard with API Integration"
+    implemented: true
+    working: "unknown"
+    file: "/app/frontend/src/pages/Dashboard.tsx, /app/frontend/src/hooks/useAdminApi.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Updated Dashboard to fetch courses from backend API. Displays Maths, Science, English, Tamil courses with bilingual names. Click course to navigate to course page. Fixed API base URL to use environment variables."
 
   - task: "Voice Input for Forms/Quizzes"
     implemented: true
