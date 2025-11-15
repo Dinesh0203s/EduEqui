@@ -96,7 +96,10 @@ const Home = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.8 }}
             >
-              <h2 className="text-4xl font-bold text-center mb-16 text-primary">
+              <h2 
+                id="features-title" 
+                className="text-4xl font-bold text-center mb-16 text-primary"
+              >
                 Our Inclusive Features
               </h2>
               
