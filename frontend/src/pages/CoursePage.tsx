@@ -126,21 +126,21 @@ const CoursePage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="mb-8">
+            <nav className="mb-8" aria-label="Navigation">
               <Button
                 onClick={() => navigate("/dashboard")}
                 variant="outline"
                 size="lg"
-                className="text-lg rounded-2xl"
-                aria-label="Go back to dashboard"
+                className="text-lg rounded-2xl min-w-[180px] min-h-[48px]"
+                aria-label="Go back to dashboard. Voice command: go back"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" aria-hidden="true" />
                 Back to Dashboard
               </Button>
-            </div>
+            </nav>
 
             {/* Course Header */}
-            <div className="text-center mb-12">
+            <section className="text-center mb-12" aria-labelledby="course-title">
               <BookOpen className="w-16 h-16 text-primary mx-auto mb-4" aria-hidden="true" />
               <h1 className="text-4xl md:text-5xl font-bold mb-2 text-primary">
                 {course.titleTamil || course.title}
