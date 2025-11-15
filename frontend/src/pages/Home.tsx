@@ -75,8 +75,8 @@ const Home = () => {
               <Button
                 onClick={() => navigate("/category")}
                 size="lg"
-                className="text-2xl py-8 px-12 rounded-3xl bg-card text-primary hover:bg-card/90 shadow-glow animate-pulse-glow"
-                aria-label="Start your learning journey"
+                className="text-2xl py-8 px-12 min-w-[200px] min-h-[64px] rounded-3xl bg-card text-primary hover:bg-card/90 shadow-glow animate-pulse-glow focus:ring-4 focus:ring-card/50"
+                aria-label="Start your learning journey. Navigate to category selection. Voice command: start learning"
               >
                 <Sparkles className="w-8 h-8 mr-3" aria-hidden="true" />
                 Start Learning
