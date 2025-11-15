@@ -93,9 +93,18 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Skip to main content link for screen readers */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:shadow-lg"
+        aria-label="Skip to main content"
+      >
+        Skip to main content
+      </a>
+      
       <Header />
       
-      <main className="flex-1 py-8 px-4">
+      <main className="flex-1 py-8 px-4" id="main-content" role="main" aria-label="Settings main content">
         <div className="container mx-auto max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -103,37 +112,42 @@ const Settings = () => {
             transition={{ duration: 0.5 }}
           >
             {/* Header */}
-            <div className="mb-8">
+            <nav className="mb-8" aria-label="Navigation">
               <Button
                 onClick={() => navigate(-1)}
                 variant="outline"
                 size="lg"
-                className="text-lg rounded-2xl mb-4"
-                aria-label="Go back"
+                className="text-lg rounded-2xl mb-4 min-w-[120px] min-h-[48px]"
+                aria-label="Go back to previous page. Voice command: go back"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" aria-hidden="true" />
                 Back
               </Button>
-              
+            </nav>
+            
+            <section 
+              className="mb-8"
+              aria-labelledby="settings-heading"
+            >
               <div className="flex items-center gap-3 mb-2">
                 <SettingsIcon className="w-8 h-8 text-primary" aria-hidden="true" />
-                <h1 className="text-4xl md:text-5xl font-bold text-primary">
+                <h1 id="settings-heading" className="text-4xl md:text-5xl font-bold text-primary">
                   Settings
                 </h1>
               </div>
-              <p className="text-xl text-muted-foreground">
+              <p className="text-xl text-muted-foreground" lang="ta">
                 அமைப்புகள் - Customize your EduEqui experience
               </p>
-            </div>
+            </section>
 
             {/* Settings Tabs */}
             <Tabs defaultValue="accessibility" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="accessibility" className="text-lg">
+              <TabsList className="grid w-full grid-cols-2 mb-6 min-h-[48px]">
+                <TabsTrigger value="accessibility" className="text-lg min-h-[44px]">
                   <Accessibility className="w-5 h-5 mr-2" aria-hidden="true" />
                   Accessibility
                 </TabsTrigger>
-                <TabsTrigger value="profile" className="text-lg">
+                <TabsTrigger value="profile" className="text-lg min-h-[44px]">
                   <User className="w-5 h-5 mr-2" aria-hidden="true" />
                   Profile
                 </TabsTrigger>
@@ -150,13 +164,16 @@ const Settings = () => {
                   </CardHeader>
                   <CardContent className="space-y-8">
                     {/* Font Size */}
-                    <div className="space-y-4">
+                    <section 
+                      className="space-y-4"
+                      aria-labelledby="font-size-heading"
+                    >
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="font-size" className="text-lg font-semibold flex items-center gap-2">
+                        <Label htmlFor="font-size" id="font-size-heading" className="text-lg font-semibold flex items-center gap-2">
                           <ZoomIn className="w-5 h-5" aria-hidden="true" />
                           Font Size
                         </Label>
-                        <span className="text-lg font-bold text-primary">
+                        <span className="text-lg font-bold text-primary" aria-live="polite">
                           {settings.fontSize}px
                         </span>
                       </div>
@@ -165,8 +182,9 @@ const Settings = () => {
                           onClick={decreaseFontSize}
                           variant="outline"
                           size="icon"
+                          className="min-w-[44px] min-h-[44px]"
                           disabled={settings.fontSize <= 14}
-                          aria-label="Decrease font size"
+                          aria-label={`Decrease font size. Current: ${settings.fontSize}px. Voice command: decrease font`}
                         >
                           <ZoomOut className="w-5 h-5" aria-hidden="true" />
                         </Button>
@@ -179,15 +197,19 @@ const Settings = () => {
                             max={32}
                             step={1}
                             className="w-full"
-                            aria-label="Font size slider"
+                            aria-label={`Font size slider. Current value: ${settings.fontSize} pixels`}
+                            aria-valuemin={14}
+                            aria-valuemax={32}
+                            aria-valuenow={settings.fontSize}
                           />
                         </div>
                         <Button
                           onClick={increaseFontSize}
                           variant="outline"
                           size="icon"
+                          className="min-w-[44px] min-h-[44px]"
                           disabled={settings.fontSize >= 32}
-                          aria-label="Increase font size"
+                          aria-label={`Increase font size. Current: ${settings.fontSize}px. Voice command: increase font`}
                         >
                           <ZoomIn className="w-5 h-5" aria-hidden="true" />
                         </Button>
@@ -195,34 +217,38 @@ const Settings = () => {
                       <p className="text-sm text-muted-foreground">
                         Current font size: {settings.fontSize}px (Range: 14px - 32px)
                       </p>
-                    </div>
+                    </section>
 
                     <Separator />
 
                     {/* High Contrast */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between" role="group" aria-labelledby="contrast-label">
                       <div className="space-y-1">
-                        <Label htmlFor="high-contrast" className="text-lg font-semibold flex items-center gap-2">
+                        <Label htmlFor="high-contrast" id="contrast-label" className="text-lg font-semibold flex items-center gap-2">
                           <Contrast className="w-5 h-5" aria-hidden="true" />
                           High Contrast Mode
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          Increase contrast for better visibility
+                          Increase contrast for better visibility. Voice command: high contrast on or off
                         </p>
                       </div>
                       <Switch
                         id="high-contrast"
                         checked={settings.highContrast}
                         onCheckedChange={updateHighContrast}
-                        aria-label="Toggle high contrast mode"
+                        aria-label={`High contrast mode. Currently ${settings.highContrast ? 'enabled' : 'disabled'}`}
+                        aria-checked={settings.highContrast}
                       />
                     </div>
 
                     <Separator />
 
                     {/* Language Preference */}
-                    <div className="space-y-3">
-                      <Label htmlFor="language" className="text-lg font-semibold flex items-center gap-2">
+                    <section 
+                      className="space-y-3"
+                      aria-labelledby="language-heading"
+                    >
+                      <Label htmlFor="language" id="language-heading" className="text-lg font-semibold flex items-center gap-2">
                         <Languages className="w-5 h-5" aria-hidden="true" />
                         Language Preference
                       </Label>
@@ -232,7 +258,11 @@ const Settings = () => {
                           updateLanguage(value)
                         }
                       >
-                        <SelectTrigger id="language" className="text-lg h-12">
+                        <SelectTrigger 
+                          id="language" 
+                          className="text-lg min-h-[48px]"
+                          aria-label={`Language preference. Currently selected: ${settings.language}`}
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -244,18 +274,21 @@ const Settings = () => {
                       <p className="text-sm text-muted-foreground">
                         Choose your preferred language for content display
                       </p>
-                    </div>
+                    </section>
 
                     <Separator />
 
                     {/* TTS Speed */}
-                    <div className="space-y-4">
+                    <section 
+                      className="space-y-4"
+                      aria-labelledby="tts-speed-heading"
+                    >
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="tts-speed" className="text-lg font-semibold flex items-center gap-2">
+                        <Label htmlFor="tts-speed" id="tts-speed-heading" className="text-lg font-semibold flex items-center gap-2">
                           <Volume2 className="w-5 h-5" aria-hidden="true" />
                           Text-to-Speech Speed
                         </Label>
-                        <span className="text-lg font-bold text-primary">
+                        <span className="text-lg font-bold text-primary" aria-live="polite">
                           {settings.ttsSpeed.toFixed(1)}x
                         </span>
                       </div>
@@ -267,7 +300,10 @@ const Settings = () => {
                         max={2.0}
                         step={0.1}
                         className="w-full"
-                        aria-label="TTS speed slider"
+                        aria-label={`TTS speed slider. Current speed: ${settings.ttsSpeed.toFixed(1)}x`}
+                        aria-valuemin={0.5}
+                        aria-valuemax={2.0}
+                        aria-valuenow={settings.ttsSpeed}
                       />
                       <div className="flex justify-between text-sm text-muted-foreground">
                         <span>Slow (0.5x)</span>
@@ -277,7 +313,7 @@ const Settings = () => {
                       <p className="text-sm text-muted-foreground">
                         Adjust the playback speed of text-to-speech audio
                       </p>
-                    </div>
+                    </section>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -291,82 +327,88 @@ const Settings = () => {
                       Update your personal information and preferences
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Name */}
-                    <div className="space-y-2">
-                      <Label htmlFor="name" className="text-lg font-semibold">
-                        Full Name
-                      </Label>
-                      <Input
-                        id="name"
-                        type="text"
-                        placeholder="Enter your full name"
-                        value={profileData.name}
-                        onChange={(e) => handleProfileChange("name", e.target.value)}
-                        className="text-lg h-12"
-                        aria-label="Full name input"
-                      />
-                    </div>
+                  <CardContent>
+                    <form aria-label="Profile information form">
+                      <div className="space-y-6">
+                        {/* Name */}
+                        <div className="space-y-2">
+                          <Label htmlFor="name" className="text-lg font-semibold">
+                            Full Name
+                          </Label>
+                          <Input
+                            id="name"
+                            type="text"
+                            placeholder="Enter your full name"
+                            value={profileData.name}
+                            onChange={(e) => handleProfileChange("name", e.target.value)}
+                            className="text-lg min-h-[48px]"
+                            aria-label="Full name input field"
+                          />
+                        </div>
 
-                    {/* Email */}
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-lg font-semibold">
-                        Email Address
-                      </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="your.email@example.com"
-                        value={profileData.email}
-                        onChange={(e) => handleProfileChange("email", e.target.value)}
-                        className="text-lg h-12"
-                        aria-label="Email address input"
-                      />
-                    </div>
+                        {/* Email */}
+                        <div className="space-y-2">
+                          <Label htmlFor="email" className="text-lg font-semibold">
+                            Email Address
+                          </Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            placeholder="your.email@example.com"
+                            value={profileData.email}
+                            onChange={(e) => handleProfileChange("email", e.target.value)}
+                            className="text-lg min-h-[48px]"
+                            aria-label="Email address input field"
+                          />
+                        </div>
 
-                    {/* Preferred Name */}
-                    <div className="space-y-2">
-                      <Label htmlFor="preferred-name" className="text-lg font-semibold">
-                        Preferred Name / Nickname
-                      </Label>
-                      <Input
-                        id="preferred-name"
-                        type="text"
-                        placeholder="How would you like to be addressed?"
-                        value={profileData.preferredName}
-                        onChange={(e) => handleProfileChange("preferredName", e.target.value)}
-                        className="text-lg h-12"
-                        aria-label="Preferred name input"
-                      />
-                      <p className="text-sm text-muted-foreground">
-                        This name will be used in personalized greetings and content
-                      </p>
-                    </div>
+                        {/* Preferred Name */}
+                        <div className="space-y-2">
+                          <Label htmlFor="preferred-name" className="text-lg font-semibold">
+                            Preferred Name / Nickname
+                          </Label>
+                          <Input
+                            id="preferred-name"
+                            type="text"
+                            placeholder="How would you like to be addressed?"
+                            value={profileData.preferredName}
+                            onChange={(e) => handleProfileChange("preferredName", e.target.value)}
+                            className="text-lg min-h-[48px]"
+                            aria-label="Preferred name input field"
+                          />
+                          <p className="text-sm text-muted-foreground">
+                            This name will be used in personalized greetings and content
+                          </p>
+                        </div>
 
-                    <Separator />
+                        <Separator />
 
-                    {/* Action Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                      <Button
-                        onClick={handleSaveProfile}
-                        size="lg"
-                        className="flex-1 text-lg"
-                        aria-label="Save profile"
-                      >
-                        <Save className="w-5 h-5 mr-2" aria-hidden="true" />
-                        Save Profile
-                      </Button>
-                      <Button
-                        onClick={handleResetSettings}
-                        variant="outline"
-                        size="lg"
-                        className="flex-1 text-lg"
-                        aria-label="Reset all settings"
-                      >
-                        <RotateCcw className="w-5 h-5 mr-2" aria-hidden="true" />
-                        Reset All Settings
-                      </Button>
-                    </div>
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                          <Button
+                            type="button"
+                            onClick={handleSaveProfile}
+                            size="lg"
+                            className="flex-1 text-lg min-h-[48px]"
+                            aria-label="Save profile changes"
+                          >
+                            <Save className="w-5 h-5 mr-2" aria-hidden="true" />
+                            Save Profile
+                          </Button>
+                          <Button
+                            type="button"
+                            onClick={handleResetSettings}
+                            variant="outline"
+                            size="lg"
+                            className="flex-1 text-lg min-h-[48px]"
+                            aria-label="Reset all settings to default values"
+                          >
+                            <RotateCcw className="w-5 h-5 mr-2" aria-hidden="true" />
+                            Reset All Settings
+                          </Button>
+                        </div>
+                      </div>
+                    </form>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -381,4 +423,3 @@ const Settings = () => {
 };
 
 export default Settings;
-
