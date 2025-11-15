@@ -243,12 +243,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "TTS API Endpoint"
-    - "Enhanced Screen Reader Support - ARIA Labels and Landmarks"
-    - "Mobility Enhancements - Touch Targets and Spacing"
+    - "Course Content with Video and Transcriptions"
+    - "Dashboard with API Integration"
     - "Voice Recognition and Navigation"
   stuck_tasks: []
-  test_all: true
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
