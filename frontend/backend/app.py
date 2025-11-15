@@ -517,6 +517,65 @@ def serve_video(filename):
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
 # Student Progress API
+@app.route('/api/progress', methods=['POST', 'OPTIONS'])
+def save_progress():
+    if request.method == 'OPTIONS':
+        return cors_headers(jsonify({}))
+    
+    try:
+        data = request.get_json()
+        course_id = data.get('courseId')
+        completed_lessons = data.get('completedLessons', [])
+        current_lesson_id = data.get('currentLessonId')
+        progress = data.get('progress', 0)
+        
+        if not course_id:
+            return cors_headers(jsonify({'error': 'Course ID is required'})), 400
+        
+        # Get user ID from token (if available)
+        user_id = None
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+            try:
+                decoded = jwt.decode(token, app.config['JWT_SECRET_KEY'], algorithms=[app.config['JWT_ALGORITHM']])
+                user_id = decoded.get('sub')  # JWT uses 'sub' for user_id
+            except Exception as e:
+                print(f"Token decode error: {str(e)}")
+                pass
+        
+        # If no user_id from token, try to get from request body
+        if not user_id:
+            user_id = data.get('userId')
+        
+        if not user_id:
+            return cors_headers(jsonify({'error': 'User ID is required'})), 400
+        
+        # Save progress to database
+        progress_data = {
+            'userId': user_id,
+            'courseId': course_id,
+            'completedLessons': completed_lessons,
+            'currentLessonId': current_lesson_id,
+            'progress': progress,
+            'updatedAt': datetime.utcnow().isoformat()
+        }
+        
+        # Update or insert progress
+        from models import db
+        progress_collection = db['student_progress']
+        progress_collection.update_one(
+            {'userId': user_id, 'courseId': course_id},
+            {'$set': progress_data},
+            upsert=True
+        )
+        
+        return cors_headers(jsonify({'success': True, 'message': 'Progress saved'}))
+        
+    except Exception as e:
+        print(f"Error saving progress: {str(e)}")
+        return cors_headers(jsonify({'error': 'Failed to save progress'})), 500
+
 @app.route('/api/students/progress', methods=['GET', 'OPTIONS'])
 def get_student_progress():
     if request.method == 'OPTIONS':

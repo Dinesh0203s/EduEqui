@@ -109,10 +109,16 @@ export const useLessons = (courseId?: string) => {
     queryKey: ["lessons", courseId],
     queryFn: async () => {
       if (!courseId) return [];
-      const url = `${API_BASE_URL}/courses/${courseId}/lessons`;
+      const url = `${API_BASE_URL}/lessons?courseId=${courseId}`;
+      console.log('Fetching lessons from:', url);
       const response = await fetch(url);
-      if (!response.ok) throw new Error("Failed to fetch lessons");
-      return response.json();
+      if (!response.ok) {
+        console.error('Failed to fetch lessons:', response.status, response.statusText);
+        throw new Error("Failed to fetch lessons");
+      }
+      const data = await response.json();
+      console.log('Lessons fetched:', data);
+      return data;
     },
     enabled: !!courseId,
   });

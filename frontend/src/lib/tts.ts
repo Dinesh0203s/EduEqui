@@ -11,6 +11,7 @@ interface TTSOptions {
 // Global queue for TTS requests
 const ttsQueue: Array<{text: string, languageCode: string, speed?: number}> = [];
 let isPlaying = false;
+let isPaused = false;
 let currentAudio: HTMLAudioElement | null = null;
 let isInitialized = false;
 const queuedSpeeches = new Set<string>(); // Track queued speeches to prevent duplicates
@@ -30,7 +31,7 @@ const getDefaultSpeed = (): number => {
 };
 
 const processQueue = async (): Promise<void> => {
-  if (isPlaying || ttsQueue.length === 0) return;
+  if ((isPlaying && !isPaused) || ttsQueue.length === 0) return;
   
   isPlaying = true;
   const { text, languageCode, speed } = ttsQueue.shift()!;
@@ -69,45 +70,49 @@ const processQueue = async (): Promise<void> => {
       // Stop any currently playing audio
       if (currentAudio) {
         currentAudio.pause();
-        currentAudio.currentTime = 0;
         URL.revokeObjectURL(currentAudio.src);
       }
       
-      // Create audio element and play
-      const audio = new Audio(audioUrl);
-      currentAudio = audio;
+      currentAudio = new Audio(audioUrl);
       
-      // Apply speed setting (use provided speed or default from settings)
+      // Reset pause state when new audio starts
+      isPaused = false;
+      
+      // Apply speed setting
       const playbackSpeed = speed ?? getDefaultSpeed();
-      audio.playbackRate = Math.max(0.5, Math.min(2.0, playbackSpeed));
+      currentAudio.playbackRate = Math.max(0.5, Math.min(2.0, playbackSpeed));
       
-      // Set up cleanup and queue processing for next item
-      const cleanup = () => {
-        if (currentAudio === audio) {
-          currentAudio = null;
-        }
+      currentAudio.addEventListener('ended', () => {
         URL.revokeObjectURL(audioUrl);
+        currentAudio = null;
         isPlaying = false;
-        audio.removeEventListener('ended', onEnd);
-        audio.removeEventListener('error', onError);
+        isPaused = false;
         queuedSpeeches.delete(text);
+        resolve(undefined);
+        processQueue(); // Process next item in queue
+      });
+      
+      currentAudio.addEventListener('error', () => {
+        URL.revokeObjectURL(audioUrl);
+        currentAudio = null;
+        isPlaying = false;
+        isPaused = false;
+        queuedSpeeches.delete(text);
+        resolve(undefined);
+        processQueue(); // Process next item in queue
+      });
+      
+      currentAudio.play().then(() => {
+        isPlaying = true;
+      }).catch((error) => {
+        console.error('Failed to play audio:', error);
+        URL.revokeObjectURL(audioUrl);
+        currentAudio = null;
+        isPlaying = false;
+        isPaused = false;
+        queuedSpeeches.delete(text);
+        resolve(undefined);
         processQueue();
-        resolve();
-      };
-      
-      const onEnd = () => cleanup();
-      const onError = () => {
-        console.error('Error playing audio');
-        cleanup();
-      };
-      
-      audio.addEventListener('ended', onEnd);
-      audio.addEventListener('error', onError);
-      
-      // Play the audio
-      audio.play().catch(error => {
-        console.error('Audio playback failed:', error);
-        cleanup();
       });
     });
     
@@ -155,12 +160,15 @@ export const stopTTS = (): void => {
   }
   
   isPlaying = false;
+  isPaused = false;
 };
 
 export const pauseTTS = (): void => {
   // Pause current audio without clearing queue
   if (currentAudio && !currentAudio.paused) {
     currentAudio.pause();
+    isPaused = true;
+    isPlaying = false;
   }
 };
 
@@ -170,6 +178,8 @@ export const resumeTTS = (): void => {
     currentAudio.play().catch(error => {
       console.error('Failed to resume audio:', error);
     });
+    isPaused = false;
+    isPlaying = true;
   }
 };
 

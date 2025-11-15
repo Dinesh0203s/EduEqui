@@ -57,11 +57,22 @@ const CourseCard = ({ title, titleTamil, difficulty, progress, onClick, colorInd
         </div>
         
         <Button 
-          onClick={onClick}
-          className={`w-full text-lg py-6 rounded-2xl ${colors.gradient} text-white border-0 hover:opacity-90`}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Button clicked, calling onClick handler');
+            onClick();
+          }}
+          className={`w-full text-xl font-bold py-8 rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-0`}
           aria-label={`Continue learning ${title}`}
+          type="button"
         >
-          Continue Learning
+          <span className="flex items-center justify-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+            Continue Learning
+          </span>
         </Button>
       </Card>
     </motion.div>

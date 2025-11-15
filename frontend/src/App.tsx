@@ -19,7 +19,7 @@ import CategorySelection from "./pages/CategorySelection";
 import LanguageSelect from "./pages/LanguageSelect";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-import CoursePageNew from "./pages/CoursePageNew";
+import CoursePage from "./pages/CoursePage";
 import QuizPage from "./pages/QuizPage";
 import ResultPage from "./pages/ResultPage";
 import Settings from "./pages/Settings";
@@ -62,8 +62,8 @@ const AppContent = () => {
         <Route path="/category" element={<ProtectedRoute><CategorySelection /></ProtectedRoute>} />
         <Route path="/language" element={<ProtectedRoute><LanguageSelect /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/course" element={<ProtectedRoute><CoursePageNew /></ProtectedRoute>} />
-        <Route path="/course/:courseId" element={<ProtectedRoute><CoursePageNew /></ProtectedRoute>} />
+        <Route path="/course" element={<ProtectedRoute><CoursePage /></ProtectedRoute>} />
+        <Route path="/course/:courseId" element={<ProtectedRoute><CoursePage /></ProtectedRoute>} />
         <Route path="/quiz" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
         <Route path="/result" element={<ProtectedRoute><ResultPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

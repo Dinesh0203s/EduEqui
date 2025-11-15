@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Play, Pause, ArrowLeft, BookOpen, Loader2, ChevronRight } from "lucide-react";
+import { Play, Pause, ArrowLeft, BookOpen, Loader2, ChevronRight, ChevronLeft, SkipForward, SkipBack } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,23 +12,44 @@ import VoiceButton from "@/components/VoiceButton";
 import { useCourse, useLessons, type Lesson } from "@/hooks/useAdminApi";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { speakWithTTS } from "@/lib/tts";
+import { speakWithTTS, pauseTTS, resumeTTS, stopTTS } from "@/lib/tts";
+import { useCourseProgress } from "@/hooks/useCourseProgress";
 
 const CoursePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { courseId: paramCourseId } = useParams();
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const { settings } = useSettings();
   const { user } = useAuth();
+  const { markLessonCompleted } = useCourseProgress();
 
   // Get courseId from params, location state, or default
   const courseId = paramCourseId || location.state?.courseId || null;
 
+  // Debug logging
+  useEffect(() => {
+    if (courseId) {
+      console.log('CoursePage - Course ID:', courseId);
+    }
+  }, [courseId]);
+
   // Fetch course data with lessons
   const { data: course, isLoading: courseLoading, error: courseError } = useCourse(courseId);
-  const { data: lessons = [], isLoading: lessonsLoading } = useLessons(courseId || undefined);
+  const { data: lessons = [], isLoading: lessonsLoading, error: lessonsError } = useLessons(courseId || undefined);
+
+  // Debug logging for lessons
+  useEffect(() => {
+    console.log('Lessons fetch status:', {
+      courseId,
+      lessonsLoading,
+      lessonsError,
+      lessonsCount: lessons?.length || 0,
+      lessons
+    });
+  }, [courseId, lessons, lessonsLoading, lessonsError]);
 
   // Set first lesson as selected by default
   useEffect(() => {
@@ -84,17 +105,36 @@ const CoursePage = () => {
     }
   }, [selectedLessonId, selectedLesson, settings.language]);
 
+  // Track lesson completion
+  useEffect(() => {
+    if (selectedLesson && courseId && lessons.length > 0) {
+      // Mark lesson as started/visited
+      markLessonCompleted(courseId, selectedLesson.id, lessons.length);
+    }
+  }, [selectedLessonId, selectedLesson, courseId, lessons.length, markLessonCompleted]);
+
   const handlePlayPause = async () => {
     if (!selectedLesson) return;
     
+    if (isPaused) {
+      // Resume playing
+      resumeTTS();
+      setIsPaused(false);
+      setIsPlaying(true);
+      return;
+    }
+    
     if (isPlaying) {
-      // Stop playing
-      window.speechSynthesis?.cancel();
+      // Pause playing
+      pauseTTS();
+      setIsPaused(true);
       setIsPlaying(false);
       return;
     }
     
+    // Start playing
     setIsPlaying(true);
+    setIsPaused(false);
     const languagePref = getLanguagePreference();
     
     try {
@@ -129,8 +169,46 @@ const CoursePage = () => {
       console.error('Error playing audio:', error);
     } finally {
       setIsPlaying(false);
+      setIsPaused(false);
     }
   };
+
+  const handleStop = () => {
+    stopTTS();
+    setIsPlaying(false);
+    setIsPaused(false);
+  };
+
+  const handlePreviousLesson = () => {
+    if (!selectedLessonId || lessons.length === 0) return;
+    
+    const currentIndex = lessons.findIndex((l: Lesson) => l.id === selectedLessonId);
+    if (currentIndex > 0) {
+      stopTTS();
+      setIsPlaying(false);
+      setIsPaused(false);
+      setSelectedLessonId(lessons[currentIndex - 1].id);
+    }
+  };
+
+  const handleNextLesson = () => {
+    if (!selectedLessonId || lessons.length === 0) return;
+    
+    const currentIndex = lessons.findIndex((l: Lesson) => l.id === selectedLessonId);
+    if (currentIndex < lessons.length - 1) {
+      stopTTS();
+      setIsPlaying(false);
+      setIsPaused(false);
+      setSelectedLessonId(lessons[currentIndex + 1].id);
+    }
+  };
+
+  // Get current lesson index
+  const currentLessonIndex = selectedLessonId 
+    ? lessons.findIndex((l: Lesson) => l.id === selectedLessonId) 
+    : -1;
+  const hasPrevious = currentLessonIndex > 0;
+  const hasNext = currentLessonIndex >= 0 && currentLessonIndex < lessons.length - 1;
 
   const handleTakeQuiz = () => {
     if (selectedLesson?.quizId) {
@@ -169,10 +247,20 @@ const CoursePage = () => {
               <p className="text-muted-foreground mb-4">
                 The course you're looking for doesn't exist or couldn't be loaded.
               </p>
-              <Button onClick={() => navigate("/dashboard")}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Button>
+              {courseId && (
+                <p className="text-sm text-muted-foreground mb-4">
+                  Course ID: <code className="bg-muted px-2 py-1 rounded">{courseId}</code>
+                </p>
+              )}
+              <div className="flex gap-4">
+                <Button onClick={() => navigate("/dashboard")}>
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Dashboard
+                </Button>
+                <Button variant="outline" onClick={() => navigate("/")}>
+                  Go to Home
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </main>
@@ -290,26 +378,80 @@ const CoursePage = () => {
                     <div className="flex flex-col items-center gap-6">
                       <h3 id="audio-lesson-heading" className="text-2xl font-bold">Audio Lesson / ஒலி பாடம்</h3>
                       
-                      <Button
-                        onClick={handlePlayPause}
-                        size="lg"
-                        className="w-32 h-32 rounded-full text-2xl shadow-glow"
-                        aria-label={isPlaying ? "Pause audio lesson" : "Play audio lesson"}
-                        aria-pressed={isPlaying}
-                      >
-                        {isPlaying ? (
-                          <Pause className="w-12 h-12" aria-hidden="true" />
-                        ) : (
-                          <Play className="w-12 h-12 ml-2" aria-hidden="true" />
-                        )}
-                      </Button>
+                      {/* Navigation and Control Buttons */}
+                      <div className="flex items-center gap-4 w-full max-w-2xl justify-center">
+                        {/* Previous Lesson Button */}
+                        <Button
+                          onClick={handlePreviousLesson}
+                          variant="outline"
+                          size="lg"
+                          className="min-h-[48px] min-w-[48px] rounded-full"
+                          disabled={!hasPrevious}
+                          aria-label="Go to previous lesson"
+                        >
+                          <ChevronLeft className="w-6 h-6" aria-hidden="true" />
+                        </Button>
+                        
+                        {/* Play/Pause Button */}
+                        <Button
+                          onClick={handlePlayPause}
+                          size="lg"
+                          className="w-32 h-32 rounded-full text-2xl shadow-glow"
+                          aria-label={isPaused ? "Resume audio lesson" : isPlaying ? "Pause audio lesson" : "Play audio lesson"}
+                          aria-pressed={isPlaying}
+                        >
+                          {isPaused ? (
+                            <Play className="w-12 h-12 ml-2" aria-hidden="true" />
+                          ) : isPlaying ? (
+                            <Pause className="w-12 h-12" aria-hidden="true" />
+                          ) : (
+                            <Play className="w-12 h-12 ml-2" aria-hidden="true" />
+                          )}
+                        </Button>
+                        
+                        {/* Stop Button */}
+                        <Button
+                          onClick={handleStop}
+                          variant="outline"
+                          size="lg"
+                          className="min-h-[48px] px-6 rounded-full"
+                          disabled={!isPlaying && !isPaused}
+                          aria-label="Stop audio"
+                        >
+                          Stop
+                          <SkipBack className="w-5 h-5 ml-2" aria-hidden="true" />
+                        </Button>
+                        
+                        {/* Next Lesson Button */}
+                        <Button
+                          onClick={handleNextLesson}
+                          variant="outline"
+                          size="lg"
+                          className="min-h-[48px] min-w-[48px] rounded-full"
+                          disabled={!hasNext}
+                          aria-label="Go to next lesson"
+                        >
+                          <ChevronRight className="w-6 h-6" aria-hidden="true" />
+                        </Button>
+                      </div>
+                      
+                      {/* Lesson Navigation Info */}
+                      <div className="flex items-center gap-4 text-lg text-muted-foreground">
+                        <span>Lesson {currentLessonIndex + 1} of {lessons.length}</span>
+                        <span>/</span>
+                        <span>பாடம் {currentLessonIndex + 1} / {lessons.length}</span>
+                      </div>
                       
                       <p 
                         className="text-xl text-center text-muted-foreground"
                         role="status"
                         aria-live="polite"
                       >
-                        {isPlaying ? "Playing... / இயங்குகிறது..." : "Click to listen / கேட்க கிளிக் செய்யவும்"}
+                        {isPaused 
+                          ? "Paused / இடைநிறுத்தப்பட்டது" 
+                          : isPlaying 
+                            ? "Playing... / இயங்குகிறது..." 
+                            : "Click to listen / கேட்க கிளிக் செய்யவும்"}
                       </p>
                     </div>
                   </Card>
