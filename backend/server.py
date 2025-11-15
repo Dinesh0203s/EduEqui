@@ -100,6 +100,65 @@ class LessonProgress(BaseModel):
     progress_seconds: int = 0
     last_accessed: datetime = Field(default_factory=datetime.utcnow)
 
+# User and Authentication Models
+class DisabilityType(BaseModel):
+    vision: bool = False  # Blind, Low Vision, Color Blind
+    hearing: bool = False  # Deaf, Hard of Hearing
+    motor: bool = False  # Limited Mobility, Motor Impairment
+    cognitive: bool = False  # Dyslexia, ADHD, Learning Disabilities
+    other: Optional[str] = None  # Custom disability description
+
+class User(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    email: EmailStr
+    password_hash: str
+    disability_types: DisabilityType
+    age: Optional[int] = None
+    language_preference: str = "en"  # en or ta
+    grade_level: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class UserSignup(BaseModel):
+    name: str = Field(..., min_length=2, max_length=100)
+    email: EmailStr
+    password: str = Field(..., min_length=6, max_length=100)
+    disability_types: DisabilityType
+    age: Optional[int] = Field(None, ge=5, le=100)
+    language_preference: str = Field(default="en", pattern="^(en|ta)$")
+    grade_level: Optional[str] = None
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserResponse(BaseModel):
+    id: str
+    name: str
+    email: EmailStr
+    disability_types: DisabilityType
+    age: Optional[int]
+    language_preference: str
+    grade_level: Optional[str]
+    created_at: datetime
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=100)
+    disability_types: Optional[DisabilityType] = None
+    age: Optional[int] = Field(None, ge=5, le=100)
+    language_preference: Optional[str] = Field(None, pattern="^(en|ta)$")
+    grade_level: Optional[str] = None
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=6, max_length=100)
+
+class AuthResponse(BaseModel):
+    user: UserResponse
+    token: str
+    token_type: str = "bearer"
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
