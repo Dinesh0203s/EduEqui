@@ -105,12 +105,72 @@
 user_problem_statement: "Add login and signup with onboarding details (disabilities), permanent login (JWT tokens), and profile edit options to EduEqui application"
 
 backend:
+  - task: "User Authentication - Signup Endpoint"
+    implemented: true
+    working: "unknown"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Created POST /api/auth/signup endpoint with User model including name, email, password, disability_types (vision, hearing, motor, cognitive, other), age, language_preference, grade_level. Returns JWT token with 10-year expiration for permanent login. Uses bcrypt for password hashing."
+  
+  - task: "User Authentication - Login Endpoint"
+    implemented: true
+    working: "unknown"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Created POST /api/auth/login endpoint. Validates email/password and returns JWT token (10-year expiration) with user data. Uses passlib for password verification."
+  
+  - task: "User Profile - Get Current User"
+    implemented: true
+    working: "unknown"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Created GET /api/auth/me endpoint (protected). Returns current authenticated user's profile using JWT Bearer token authentication."
+  
+  - task: "User Profile - Update Profile"
+    implemented: true
+    working: "unknown"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Created PUT /api/auth/profile endpoint (protected). Allows updating name, disability_types, age, language_preference, grade_level. Email cannot be changed."
+  
+  - task: "User Profile - Change Password"
+    implemented: true
+    working: "unknown"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Created PUT /api/auth/password endpoint (protected). Validates current password before updating to new password. Uses bcrypt for hashing."
+  
   - task: "TTS API Endpoint"
     implemented: true
     working: true
     file: "/app/backend/server.py"
     stuck_count: 0
-    priority: "high"
+    priority: "medium"
     needs_retesting: false
     status_history:
       - working: "unknown"
