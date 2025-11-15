@@ -291,8 +291,8 @@ const CoursePage = () => {
                     <Button
                       onClick={handleTakeQuiz}
                       size="lg"
-                      className="text-2xl py-8 px-12 rounded-3xl shadow-elegant"
-                      aria-label="Take quiz to test your knowledge"
+                      className="text-2xl py-8 px-12 rounded-3xl shadow-elegant min-h-[64px]"
+                      aria-label="Take quiz to test your knowledge of this lesson"
                     >
                       Take Quiz / வினாடி வினா எடுங்கள்
                     </Button>
