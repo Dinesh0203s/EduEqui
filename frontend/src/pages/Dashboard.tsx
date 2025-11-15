@@ -1,19 +1,21 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { BookOpen, Settings, HelpCircle, LogOut, Loader2 } from "lucide-react";
+import { BookOpen, Settings, HelpCircle, LogOut, Loader2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AccessibilityToolbar from "@/components/AccessibilityToolbar";
 import CourseCard from "@/components/CourseCard";
 import { useCourses } from "@/hooks/useAdminApi";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { data: courses = [], isLoading } = useCourses();
+  const { user, logout } = useAuth();
   
-  const userName = "ராஜேஷ் / Rajesh";
+  const userName = user?.name || "User";
 
   const handleCourseClick = (courseId: string) => {
     navigate(`/course/${courseId}`);
