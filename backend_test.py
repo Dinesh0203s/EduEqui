@@ -12,7 +12,7 @@ from datetime import datetime
 import sys
 
 # Get backend URL from environment
-BACKEND_URL = "https://speakbot-3.preview.emergentagent.com"
+BACKEND_URL = "https://replicate-it.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 class BackendTester:
