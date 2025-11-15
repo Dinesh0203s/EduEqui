@@ -155,27 +155,36 @@ const CoursePage = () => {
 
             {/* Lessons Navigation */}
             {lessons.length > 0 && (
-              <Card className="mb-8">
-                <CardHeader>
-                  <CardTitle>Lessons / பாடங்கள்</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {lessons.map((lesson: Lesson, index: number) => (
-                      <Button
-                        key={lesson.id}
-                        variant={selectedLessonId === lesson.id ? "default" : "outline"}
-                        className="w-full justify-start text-left"
-                        onClick={() => setSelectedLessonId(lesson.id)}
-                      >
-                        <span className="mr-2 font-semibold">{index + 1}.</span>
-                        <span>{lesson.titleTamil || lesson.title}</span>
-                        <ChevronRight className="w-4 h-4 ml-auto" />
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <nav aria-labelledby="lessons-nav-title">
+                <Card className="mb-8">
+                  <CardHeader>
+                    <CardTitle id="lessons-nav-title">Lessons / பாடங்கள்</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div 
+                      className="space-y-2"
+                      role="list"
+                      aria-label="Available lessons"
+                    >
+                      {lessons.map((lesson: Lesson, index: number) => (
+                        <Button
+                          key={lesson.id}
+                          role="listitem"
+                          variant={selectedLessonId === lesson.id ? "default" : "outline"}
+                          className="w-full justify-start text-left min-h-[48px]"
+                          onClick={() => setSelectedLessonId(lesson.id)}
+                          aria-label={`Lesson ${index + 1}: ${lesson.titleTamil || lesson.title}`}
+                          aria-current={selectedLessonId === lesson.id ? "page" : undefined}
+                        >
+                          <span className="mr-2 font-semibold">{index + 1}.</span>
+                          <span>{lesson.titleTamil || lesson.title}</span>
+                          <ChevronRight className="w-4 h-4 ml-auto" aria-hidden="true" />
+                        </Button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </nav>
             )}
 
             {/* Lesson Content */}
