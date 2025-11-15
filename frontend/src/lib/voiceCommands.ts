@@ -53,7 +53,7 @@ export const createVoiceCommands = (
     category: 'navigation'
   },
   {
-    patterns: ['go to maths', 'open maths', 'maths course', 'mathematics course', 'show maths', 'learn maths'],
+    patterns: ['go to mathematics', 'open mathematics', 'mathematics course', 'show mathematics', 'learn mathematics'],
     action: () => navigate('/course/course-maths'),
     description: 'Go to Mathematics course',
     category: 'navigation'
