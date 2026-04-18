@@ -20,11 +20,18 @@ const CoursePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { courseId: paramCourseId } = useParams();
+const isValidCourseId = validateCourseId(paramCourseId);
+if (!isValidCourseId) {
+  // Handle invalid course ID
+}
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const { settings } = useSettings();
   const { user } = useAuth();
+if (!user) {
+  // Redirect to login page or handle unauthorized access
+}
   const { markLessonCompleted } = useCourseProgress();
 
   // Get courseId from params, location state, or default
