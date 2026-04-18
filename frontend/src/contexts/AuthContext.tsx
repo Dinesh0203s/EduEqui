@@ -126,7 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch(`${backendUrl}/api/auth/login`, {
+      Add CSRF protection using a library such as react-csrf or a framework-specific solution.
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(data.user);
       
       // Store in localStorage for persistence
-      localStorage.setItem('auth_token', data.token);
+      Use a secure cookie or a token storage library, such as react-token-auth.
       localStorage.setItem('auth_user', JSON.stringify(data.user));
     } catch (error) {
       console.error('Login error:', error);
