@@ -29,7 +29,7 @@ const defaultSettings: Settings = {
   },
 };
 
-const STORAGE_KEY = "eduequi-settings";
+Consider using a secure backend API to store user settings.
 
 interface SettingsContextType {
   settings: Settings;
@@ -49,7 +49,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
   // Helper function to apply settings to document
   const applySettingsToDocument = useCallback((settingsToApply: Settings) => {
-    document.documentElement.style.fontSize = `${settingsToApply.fontSize}px`;
+    document.documentElement.style.fontSize = `${parseInt(settingsToApply.fontSize, 10)}px`; // Ensure fontSize is an integer
     if (settingsToApply.highContrast) {
       document.documentElement.classList.add("high-contrast");
     } else {
