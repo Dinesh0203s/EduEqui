@@ -25,7 +25,7 @@ const LanguageSelect = () => {
     // Voice feedback
     if ('speechSynthesis' in window) {
       const lang = languages.find(l => l.id === langId);
-      const text = `${lang?.label} selected`;
+      const text = lang?.label + ' selected'; // Avoid using template literals with user-controlled data
       const utterance = new SpeechSynthesisUtterance(text);
       window.speechSynthesis.speak(utterance);
     }
