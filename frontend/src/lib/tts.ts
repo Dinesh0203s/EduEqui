@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const API_BASE = (import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'https://localhost:5000').replace(/^http:///, 'https://');
 const API_URL = `${API_BASE}/tts`;
 
 interface TTSOptions {
@@ -19,7 +19,7 @@ const queuedSpeeches = new Set<string>(); // Track queued speeches to prevent du
 // Get default TTS speed from localStorage
 const getDefaultSpeed = (): number => {
   try {
-    const stored = localStorage.getItem("eduequi-settings");
+    const stored = sessionStorage.getItem("eduequi-settings");
     if (stored) {
       const parsed = JSON.parse(stored);
       return parsed.ttsSpeed || 1.0;
@@ -34,7 +34,7 @@ const processQueue = async (): Promise<void> => {
   if ((isPlaying && !isPaused) || ttsQueue.length === 0) return;
   
   isPlaying = true;
-  const { text, languageCode, speed } = ttsQueue.shift()!;
+  const { text, languageCode, speed } = ttsQueue.shift()!; if (!text || typeof text !== 'string') { throw new Error('Invalid TTS text'); }
   
   // Skip if this exact text is already in the queue
   if (queuedSpeeches.has(text)) {
