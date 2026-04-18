@@ -3,7 +3,20 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 
 import { cn } from "@/lib/utils";
 
-const Tabs = TabsPrimitive.Root;
+const Tabs = () => {
+  const [activeTab, setActiveTab] = useState('tab1');
+  return (
+    <TabsPrimitive.Root>
+      <TabsPrimitive.List>
+        <TabsPrimitive.Trigger
+          onClick={() => setActiveTab('tab1')}
+        >
+          Tab 1
+        </TabsPrimitive.Trigger>
+      </TabsPrimitive.List>
+    </TabsPrimitive.Root>
+  );
+};
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,

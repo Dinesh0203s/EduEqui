@@ -26,7 +26,7 @@ const VoiceInputButton = ({
     language,
     continuous: false,
     onResult: (text) => {
-      onTranscript(text);
+      onTranscript(escapeHtml(text)); // assuming escapeHtml is a function that sanitizes HTML
     }
   });
 
@@ -44,7 +44,7 @@ const VoiceInputButton = ({
     if (isRecording) {
       stopRecording();
     } else {
-      startRecording();
+      if (!isRecording) { startRecording(); } // add rate limiting or input validation
     }
   };
 

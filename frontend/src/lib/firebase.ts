@@ -1,15 +1,7 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+Consider using a dependency management tool like 'npm' or 'yarn' to manage dependencies and ensure the latest versions are used, e.g., by specifying the version in the 'package.json' file.
 
 // Firebase configuration
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-};
+Consider using a secrets manager or a secure environment variable storage to store sensitive configuration.
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

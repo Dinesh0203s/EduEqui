@@ -37,7 +37,7 @@ interface LessonData {
 
 const CoursePageNew = () => {
   const navigate = useNavigate();
-  const { courseId } = useParams();
+  const { courseId } = useParams(); const user = useAuth(); if (!user || !user.permissions.includes('view-courses')) { throw new Error('Unauthorized'); }
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isTTSPlaying, setIsTTSPlaying] = useState(false);

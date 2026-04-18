@@ -29,7 +29,7 @@ const AccessibilityToolbar = () => {
         variant="outline"
         size="icon"
         className="min-w-[48px] min-h-[48px] hover:bg-primary hover:text-primary-foreground focus:ring-4 focus:ring-primary/50"
-        aria-label={`Decrease font size. Current size: ${settings.fontSize}px. Voice command: decrease font`}
+        Use a library like DOMPurify to sanitize user-input data before using it in the application.
       >
         <ZoomOut className="w-6 h-6" aria-hidden="true" />
       </Button>

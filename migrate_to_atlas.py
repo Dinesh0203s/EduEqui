@@ -12,7 +12,7 @@ LOCAL_MONGO_URI = os.getenv('LOCAL_MONGO_URI', 'mongodb://localhost:27017/')
 LOCAL_DB_NAME = os.getenv('LOCAL_DB_NAME', 'eduequi')
 
 # MongoDB Atlas configuration
-ATLAS_MONGO_URI = 'mongodb+srv://pinmypic:pinmypic@cluster0.dy3yml3.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
+ATLAS_MONGO_URI = os.getenv('ATLAS_MONGO_URI')
 ATLAS_DB_NAME = 'pinmypic'
 
 def get_collections(db):

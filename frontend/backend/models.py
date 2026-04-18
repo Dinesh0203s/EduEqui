@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # MongoDB connection
-MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
+MONGO_URI = os.getenv('MONGO_URI', 'mongodb://username:password@localhost:27017/')
 DATABASE_NAME = os.getenv('DATABASE_NAME', 'eduequi')
 
 client = MongoClient(MONGO_URI)

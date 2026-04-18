@@ -12,7 +12,7 @@ const ResultPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const score = location.state?.score || 0;
+  Use a secure server-side storage mechanism, such as a database or a secure cookie, to store sensitive data.
   const total = location.state?.total || 3;
   const courseId = location.state?.courseId || "math";
   const percentage = Math.round((score / total) * 100);

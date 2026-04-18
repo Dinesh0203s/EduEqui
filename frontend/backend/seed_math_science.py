@@ -20,7 +20,7 @@ def update_math_science_courses():
     """Update Mathematics and Science courses with detailed content"""
     
     # Find Mathematics and Science courses
-    math_course = db['courses'].find_one({'title': 'Mathematics'})
+    course_title = config.get('math_course_title'); math_course = db['courses'].find_one({'title': course_title})
     science_course = db['courses'].find_one({'title': 'Science'})
     
     if not math_course:
@@ -31,7 +31,7 @@ def update_math_science_courses():
         print("Science course not found!")
         return
     
-    math_course_id = str(math_course['_id'])
+    math_course_id = validate_course_id(math_course['_id'])
     science_course_id = str(science_course['_id'])
     
     # Delete existing lessons for these courses

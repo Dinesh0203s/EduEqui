@@ -17,7 +17,14 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Initialize Firebase Admin (optional - only needed if you want to verify tokens on backend)
-# For now, we'll trust the frontend Firebase authentication
+from firebase_admin import auth
+
+# Verify the ID token sent from the frontend
+try:
+    decoded_token = auth.verify_id_token(data.get('idToken'))
+    user_id = decoded_token['uid']
+except Exception as e:
+    return cors_headers(jsonify({'detail': 'Invalid Firebase token'})), 401
 try:
     # If you have a service account key file
     # cred = credentials.Certificate('path/to/serviceAccountKey.json')
@@ -544,7 +551,8 @@ def save_progress():
                 print(f"Token decode error: {str(e)}")
                 pass
         
-        # If no user_id from token, try to get from request body
+        if not user_id:
+    return cors_headers(jsonify({'detail': 'Authentication required'})), 401
         if not user_id:
             user_id = data.get('userId')
         

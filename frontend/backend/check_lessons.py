@@ -5,7 +5,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from models import LessonModel, CourseModel
 
 # Get Mathematics course
-math_course = CourseModel.get_by_id('691828a508e836c68a98310e')
+course_id = os.getenv('COURSE_ID', 'default_course_id')
+math_course = CourseModel.get_by_id(course_id)
 if math_course:
     print(f"\nMathematics Course Found:")
     print(f"ID: {math_course['id']}")

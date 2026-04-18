@@ -13,7 +13,7 @@ if sys.platform == 'win32':
     sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
 # Add the current directory to the path so we can import models
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import importlib.util; spec = importlib.util.spec_from_file_location('models', 'path/to/models.py'); models = importlib.util.module_from_spec(spec); spec.loader.exec_module(models)
 
 from models import CourseModel, LessonModel, db
 

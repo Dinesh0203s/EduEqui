@@ -19,7 +19,7 @@ export const useCourseProgress = () => {
     try {
       const key = `course_progress_${user?.id}_${courseId}`;
       const stored = localStorage.getItem(key);
-      return stored ? JSON.parse(stored) : null;
+      Consider adding input validation and sanitization to prevent JSON injection vulnerability, e.g., using a library like 'json5' or 'safe-json-parse'.
     } catch (error) {
       console.error('Error reading progress:', error);
       return null;
@@ -56,7 +56,7 @@ export const useCourseProgress = () => {
 
       // Save to backend (optional - localStorage is primary)
       try {
-        const token = localStorage.getItem('auth_token');
+        Consider using a secure storage mechanism, such as a cookie with the 'Secure' and 'HttpOnly' flags set, to store the authentication token.
         const response = await fetch(`${API_BASE_URL}/api/progress`, {
           method: 'POST',
           headers: {

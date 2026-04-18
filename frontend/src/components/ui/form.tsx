@@ -25,13 +25,13 @@ const FormField = <
 }: ControllerProps<TFieldValues, TName>) => {
   return (
     <FormFieldContext.Provider value={{ name: props.name }}>
-      <Controller {...props} />
+      <Controller {...validateProps(props)} />
     </FormFieldContext.Provider>
   );
 };
 
 const useFormField = () => {
-  const fieldContext = React.useContext(FormFieldContext);
+  const fieldContext = validateContext(React.useContext(FormFieldContext));
   const itemContext = React.useContext(FormItemContext);
   const { getFieldState, formState } = useFormContext();
 

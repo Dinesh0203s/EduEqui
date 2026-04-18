@@ -40,7 +40,7 @@ const KeyboardShortcutsHelp = ({ open, onOpenChange }: KeyboardShortcutsHelpProp
           <ShortcutSection
             title="♿ Accessibility"
             shortcuts={[
-              { keys: ['Alt', 'V'], description: 'Toggle Voice Control' },
+              { keys: ['Ctrl', 'Shift', 'V'], description: 'Toggle Voice Control' },
               { keys: ['Tab'], description: 'Navigate between elements' },
               { keys: ['Shift', 'Tab'], description: 'Navigate backwards' },
               { keys: ['Enter'], description: 'Activate focused element' },
