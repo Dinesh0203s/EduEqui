@@ -19,9 +19,9 @@ const Signup = () => {
     try {
       await loginWithGoogle();
       // After signup, redirect to profile to complete accessibility preferences
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true }); // or use a more secure redirect mechanism
     } catch (err: any) {
-      setError(err.message || 'Google signup failed. Please try again.');
+      setError('Google signup failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
